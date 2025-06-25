@@ -1,4 +1,4 @@
-package com.erikmlarson5.deadline_manager;
+package com.erikmlarson5.deadlinemanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
