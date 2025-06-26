@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 @Entity
 @Table
@@ -40,6 +41,8 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ArrayList<Task> tasks = new ArrayList<>();
 
     public Project() {
 
@@ -140,5 +143,22 @@ public class Project {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "Project{" +
+                "projectId=" + projectId +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", course='" + course + '\'' +
+                ", dueDate=" + dueDate +
+                ", weight=" + weight +
+                ", difficulty=" + difficulty +
+                ", priority=" + priority +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
