@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table
@@ -42,7 +43,7 @@ public class Project {
     private Status status;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ArrayList<Task> tasks = new ArrayList<>();
+    private List<Task> tasks = new ArrayList<>();
 
     public Project() {
 
@@ -123,7 +124,7 @@ public class Project {
         return priority;
     }
 
-    protected void setPriority(float priority) {
+    public void setPriority(float priority) {
         this.priority = priority;
     }
 
@@ -133,6 +134,24 @@ public class Project {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(ArrayList<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setProject(this);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setProject(null);
     }
 
     @PrePersist

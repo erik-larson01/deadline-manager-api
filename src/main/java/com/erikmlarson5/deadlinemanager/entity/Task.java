@@ -122,7 +122,7 @@ public class Task {
         return priority;
     }
 
-    protected void setPriority(float priority) {
+    public void setPriority(float priority) {
         this.priority = priority;
     }
 
