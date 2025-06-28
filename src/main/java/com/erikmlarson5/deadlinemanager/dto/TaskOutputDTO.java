@@ -11,7 +11,7 @@ public class TaskOutputDTO {
     private String title;
     private String description;
     private LocalDate dueDate;
-    private float weight;
+    private float estimatedHours;
     private int difficulty;
     private String status;
     private float priority;
@@ -31,8 +31,8 @@ public class TaskOutputDTO {
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 
-    public float getWeight() { return weight; }
-    public void setWeight(float weight) { this.weight = weight; }
+    public float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(float estimatedHours) { this.estimatedHours = estimatedHours; }
 
     public int getDifficulty() { return difficulty; }
     public void setDifficulty(int difficulty) { this.difficulty = difficulty; }
@@ -49,6 +49,6 @@ public class TaskOutputDTO {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public Project getProjectId() { return project; }
-    public void setProjectId(Project project) { this.project = project; }
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
 }

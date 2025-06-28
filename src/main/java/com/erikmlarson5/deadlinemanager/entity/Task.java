@@ -23,7 +23,7 @@ public class Task {
     private LocalDate dueDate;
 
     @Column(nullable = false)
-    private float weight;
+    private float estimatedHours;
 
     @Column(nullable = false)
     private int difficulty;
@@ -47,14 +47,14 @@ public class Task {
 
     }
 
-    public Task(String title, String description, LocalDate dueDate, float weight, int difficulty,
-                Status status, Project project) {
+    public Task(String title, String description, LocalDate dueDate, int difficulty,
+                Status status, float estimatedHours, Project project) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
-        this.weight = weight;
         this.difficulty = difficulty;
         this.status = status;
+        this.estimatedHours = estimatedHours;
         this.project = project;
     }
 
@@ -84,14 +84,6 @@ public class Task {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
-    }
-
-    public float getWeight() {
-        return weight;
-    }
-
-    public void setWeight(float weight) {
-        this.weight = weight;
     }
 
     public int getDifficulty() {
@@ -151,7 +143,6 @@ public class Task {
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", dueDate=" + dueDate +
-                ", weight=" + weight +
                 ", difficulty=" + difficulty +
                 ", priority=" + priority +
                 ", status=" + status +

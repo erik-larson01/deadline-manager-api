@@ -1,5 +1,6 @@
 package com.erikmlarson5.deadlinemanager.dto;
 
+import com.erikmlarson5.deadlinemanager.entity.Project;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -16,8 +17,9 @@ public class TaskInputDTO {
     @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "Weight must be >= 0")
-    private float weight;
+    @DecimalMin(value = "0.0", inclusive = true, message = "Estimated hours must be at least 0")
+    @DecimalMax(value = "1000.0", inclusive = true, message = "Estimated hours must not exceed 1000")
+    private float estimatedHours;
 
     @Min(value = 1, message = "Difficulty must be between 1 and 10")
     @Max(value = 10, message = "Difficulty must be between 1 and 10")
@@ -27,7 +29,7 @@ public class TaskInputDTO {
     private String status;
 
     @NotNull(message = "Project ID is required")
-    private Long projectId;
+    private Project project;
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -38,8 +40,8 @@ public class TaskInputDTO {
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 
-    public float getWeight() { return weight; }
-    public void setWeight(float weight) { this.weight = weight; }
+    public float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(float estimatedHours) { this.estimatedHours = estimatedHours; }
 
     public int getDifficulty() { return difficulty; }
     public void setDifficulty(int difficulty) { this.difficulty = difficulty; }
@@ -47,6 +49,6 @@ public class TaskInputDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public Long getProjectId() { return projectId; }
-    public void setProjectId(Long projectId) { this.projectId = projectId; }
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
 }
