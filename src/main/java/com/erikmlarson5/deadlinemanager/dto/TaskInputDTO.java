@@ -29,7 +29,7 @@ public class TaskInputDTO {
     private String status;
 
     @NotNull(message = "Project ID is required")
-    private Project project;
+    private Long projectId;
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -49,6 +49,6 @@ public class TaskInputDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public Project getProject() { return project; }
-    public void setProject(Project project) { this.project = project; }
+    public Long getProjectID() { return projectId; }
+    public void setProjectId(Long projectId) { this.projectId = projectId; }
 }

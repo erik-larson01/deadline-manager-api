@@ -126,6 +126,9 @@ public class Task {
         return updatedAt;
     }
 
+    public float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(float estimatedHours) { this.estimatedHours = estimatedHours; }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

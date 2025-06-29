@@ -17,7 +17,7 @@ public class TaskOutputDTO {
     private float priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Project project;
+    private Long projectId;
 
     public Long getTaskId() { return taskId; }
     public void setTaskId(Long taskId) { this.taskId = taskId; }
@@ -49,6 +49,6 @@ public class TaskOutputDTO {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public Project getProject() { return project; }
-    public void setProject(Project project) { this.project = project; }
+    public Long getProjectId() { return projectId; }
+    public void setProjectId(Long projectId) { this.projectId = projectId; }
 }

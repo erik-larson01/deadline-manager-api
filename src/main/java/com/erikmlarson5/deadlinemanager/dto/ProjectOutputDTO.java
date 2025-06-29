@@ -20,7 +20,7 @@ public class ProjectOutputDTO {
     private float priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<TaskOutputDTO> tasks = new ArrayList<>();;
+    private List<TaskOutputDTO> tasks;
 
     public Long getProjectId() { return projectId; }
     public void setProjectId(Long projectId) { this.projectId = projectId; }
@@ -49,10 +49,13 @@ public class ProjectOutputDTO {
     public float getPriority() { return priority; }
     public void setPriority(float priority) { this.priority = priority; }
 
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
 
     public List<TaskOutputDTO> getTasks() { return tasks; }
-    public void setTasks(ArrayList<TaskOutputDTO> tasks) { this.tasks = tasks; }
+    public void setTasks(List<TaskOutputDTO> tasks) { this.tasks = tasks; }
 }
