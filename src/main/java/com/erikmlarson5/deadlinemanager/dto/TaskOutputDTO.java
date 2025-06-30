@@ -14,7 +14,6 @@ public class TaskOutputDTO {
     private float estimatedHours;
     private int difficulty;
     private String status;
-    private float priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long projectId;
@@ -39,9 +38,6 @@ public class TaskOutputDTO {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public float getPriority() { return priority; }
-    public void setPriority(float priority) { this.priority = priority; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

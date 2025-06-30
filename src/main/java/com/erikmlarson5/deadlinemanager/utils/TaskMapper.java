@@ -27,7 +27,6 @@ public class TaskMapper {
         dto.setEstimatedHours(task.getEstimatedHours());
         dto.setDifficulty(task.getDifficulty());
         dto.setStatus(task.getStatus().toString());
-        dto.setPriority(task.getPriority());
         dto.setCreatedAt(task.getCreatedAt());
         dto.setUpdatedAt(task.getUpdatedAt());
         dto.setProjectId(task.getProject().getProjectId());

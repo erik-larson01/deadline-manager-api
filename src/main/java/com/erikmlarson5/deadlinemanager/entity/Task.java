@@ -28,8 +28,6 @@ public class Task {
     @Column(nullable = false)
     private int difficulty;
 
-    private float priority = 0.0f;
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -110,14 +108,6 @@ public class Task {
         this.project = project;
     }
 
-    public float getPriority() {
-        return priority;
-    }
-
-    public void setPriority(float priority) {
-        this.priority = priority;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -147,7 +137,6 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", dueDate=" + dueDate +
                 ", difficulty=" + difficulty +
-                ", priority=" + priority +
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
