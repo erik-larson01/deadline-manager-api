@@ -24,6 +24,15 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    public ProjectOutputDTO createProject(ProjectInputDTO dto) {
+        Project project = ProjectMapper.toEntity(dto);
+
+        float priority = calculatePriority(project);
+        project.setPriority(priority);
+
+        Project savedProject = projectRepository.save(project);
+        return ProjectMapper.toOutputDto(savedProject);
+    }
 
     private float calculatePriority(Project project) {
         LocalDate today = LocalDate.now();
