@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -26,12 +27,96 @@ public class ProjectService {
 
     public ProjectOutputDTO createProject(ProjectInputDTO dto) {
         Project project = ProjectMapper.toEntity(dto);
-
+        if (projectRepository.existsByTitleAndCourse(project.getTitle(), project.getCourse())) {
+            throw new IllegalStateException("Project with the same title and course already exists");
+        }
         float priority = calculatePriority(project);
         project.setPriority(priority);
 
         Project savedProject = projectRepository.save(project);
         return ProjectMapper.toOutputDto(savedProject);
+    }
+
+    public ProjectOutputDTO getProjectById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
+        return ProjectMapper.toOutputDto(project);
+    }
+
+    public List<ProjectOutputDTO> getProjectsInCourse(String course) {
+        List<Project> allProjects = projectRepository.findByCourseIgnoreCase(course);
+        List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
+        for (Project project : allProjects) {
+            allOutputDTOs.add(ProjectMapper.toOutputDto(project));
+        }
+        return allOutputDTOs;
+    }
+
+    public List<ProjectOutputDTO> getAllProjects() {
+        List<Project> allProjects = projectRepository.findAll();
+        List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
+        for (Project project : allProjects) {
+            allOutputDTOs.add(ProjectMapper.toOutputDto(project));
+        }
+        return allOutputDTOs;
+    }
+
+    public List<ProjectOutputDTO> getProjectsDueInDays(int days) {
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = today.plusDays(days);
+        List<Project> projects = projectRepository.findByDueDateBetween(today, deadline);
+
+        List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
+        for (Project project : projects) {
+            allOutputDTOs.add(ProjectMapper.toOutputDto(project));
+        }
+        return allOutputDTOs;
+    }
+    public List<ProjectOutputDTO> getProjectsByStatus(Status status) {
+        List<Project> allProjects = projectRepository.findByStatus(status);
+        List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
+        for (Project project : allProjects) {
+            allOutputDTOs.add(ProjectMapper.toOutputDto(project));
+        }
+        return allOutputDTOs;
+    }
+
+    public List<ProjectOutputDTO> getCompletedProjects() {
+        return getProjectsByStatus(Status.COMPLETED);
+    }
+
+    public List<ProjectOutputDTO> getProjectsSortedByPriority() {
+        List<Project> allProjects = projectRepository.findAllByOrderByPriorityDesc();
+        List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
+        for (Project project : allProjects) {
+            allOutputDTOs.add(ProjectMapper.toOutputDto(project));
+        }
+        return allOutputDTOs;
+    }
+
+    public ProjectOutputDTO updateProject(Long id, ProjectInputDTO dto) {
+        Project existingProject = projectRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not found!"));
+
+        existingProject.setTitle(dto.getTitle());
+        existingProject.setDescription(dto.getDescription());
+        existingProject.setCourse(dto.getCourse());
+        existingProject.setDueDate(dto.getDueDate());
+        existingProject.setWeight(dto.getWeight());
+        existingProject.setDifficulty(dto.getDifficulty());
+        existingProject.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
+
+        float newPriority = calculatePriority(existingProject);
+        existingProject.setPriority(newPriority);
+
+        projectRepository.save(existingProject);
+        return ProjectMapper.toOutputDto(existingProject);
+    }
+
+    public void deleteProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
+        projectRepository.delete(project);
     }
 
     private float calculatePriority(Project project) {
@@ -74,6 +159,10 @@ public class ProjectService {
     }
 
     private double calculateRemainingWork(Project project) {
+        if (project.getTasks() == null || project.getTasks().isEmpty()) {
+            return 5.0;
+        }
+
         double totalHours = 0.0;
         for (Task task : project.getTasks()) {
             if (task.getStatus() != Status.COMPLETED) {
@@ -135,6 +224,15 @@ public class ProjectService {
 
         // Progress score is the inverse of completion percentage
         return (1.0 - completionPercentage) * 10.0;
+    }
+
+    public void updateAllProjectPriorities() {
+        List<Project> projects = projectRepository.findAll();
+        for (Project project : projects) {
+            float newPriority = calculatePriority(project);
+            project.setPriority(newPriority);
+        }
+        projectRepository.saveAll(projects);
     }
 }
 
