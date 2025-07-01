@@ -7,6 +7,7 @@ import com.erikmlarson5.deadlinemanager.entity.Task;
 import com.erikmlarson5.deadlinemanager.repository.ProjectRepository;
 import com.erikmlarson5.deadlinemanager.utils.ProjectMapper;
 import com.erikmlarson5.deadlinemanager.utils.Status;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional
 public class ProjectService {
     private final ProjectRepository projectRepository;
 
@@ -113,13 +115,32 @@ public class ProjectService {
         return ProjectMapper.toOutputDto(existingProject);
     }
 
+    public ProjectOutputDTO updateProjectStatus(Long id, String newStatus) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not " + "found!"));
+
+        project.setStatus(Status.valueOf(newStatus.toUpperCase()));
+        projectRepository.save(project);
+
+        return ProjectMapper.toOutputDto(project);
+    }
+
+    public void updateAllProjectPriorities() {
+        List<Project> projects = projectRepository.findAll();
+        for (Project project : projects) {
+            float newPriority = calculatePriority(project);
+            project.setPriority(newPriority);
+        }
+        projectRepository.saveAll(projects);
+    }
+
     public void deleteProject(Long id) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
+                .orElseThrow(() -> new NoSuchElementException("Project with id: " + id + " not found!"));
         projectRepository.delete(project);
     }
 
-    private float calculatePriority(Project project) {
+    public float calculatePriority(Project project) {
         LocalDate today = LocalDate.now();
         LocalDate dueDate = project.getDueDate();
 
@@ -224,15 +245,6 @@ public class ProjectService {
 
         // Progress score is the inverse of completion percentage
         return (1.0 - completionPercentage) * 10.0;
-    }
-
-    public void updateAllProjectPriorities() {
-        List<Project> projects = projectRepository.findAll();
-        for (Project project : projects) {
-            float newPriority = calculatePriority(project);
-            project.setPriority(newPriority);
-        }
-        projectRepository.saveAll(projects);
     }
 }
 
