@@ -69,27 +69,27 @@ public class ProjectController {
         return ResponseEntity.ok(sortedProjects);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}")
     public ResponseEntity<ProjectOutputDTO> updateProject(@PathVariable Long id,
                                                           @RequestBody ProjectInputDTO dto) {
         ProjectOutputDTO updatedProject = projectService.updateProject(id, dto);
         return ResponseEntity.ok(updatedProject);
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping(path = "/{id}/status")
     public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable Long id,
                                                                 @RequestParam String newStatus) {
         ProjectOutputDTO updatedProject = projectService.updateProjectStatus(id, newStatus);
         return ResponseEntity.ok(updatedProject);
     }
 
-    @PatchMapping("/update-priorities")
+    @PatchMapping(path = "/update-priorities")
     public ResponseEntity<Void> updateAllProjectPriorities() {
         projectService.updateAllProjectPriorities();
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
