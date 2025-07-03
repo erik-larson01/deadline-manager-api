@@ -5,13 +5,16 @@ import com.erikmlarson5.deadlinemanager.dto.TaskInputDTO;
 import com.erikmlarson5.deadlinemanager.dto.TaskOutputDTO;
 import com.erikmlarson5.deadlinemanager.service.TaskService;
 import com.erikmlarson5.deadlinemanager.utils.Status;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping(path = "/api/v1")
 public class TaskController {
@@ -24,7 +27,7 @@ public class TaskController {
 
     @PostMapping(path = "projects/{projectId}/tasks")
     public ResponseEntity<TaskOutputDTO> createTask(@PathVariable Long projectId,
-                                                    @RequestBody TaskInputDTO dto) {
+                                                    @RequestBody @Valid TaskInputDTO dto) {
         TaskOutputDTO createdTask = taskService.createTask(projectId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
@@ -49,7 +52,7 @@ public class TaskController {
     }
 
     @GetMapping(path = "/tasks/status")
-    public ResponseEntity<List<TaskOutputDTO>> getAllTasksByStatus(@RequestParam Status status) {
+    public ResponseEntity<List<TaskOutputDTO>> getAllTasksByStatus(@RequestParam @Valid Status status) {
         List<TaskOutputDTO> tasksByStatus = taskService.getAllTasksByStatus(status);
         return ResponseEntity.ok(tasksByStatus);
     }
@@ -63,7 +66,7 @@ public class TaskController {
     @PutMapping(path = "/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<TaskOutputDTO> updateTask(@PathVariable Long projectId,
                                                     @PathVariable Long taskId,
-                                                    @RequestBody TaskInputDTO dto) {
+                                                    @RequestBody @Valid TaskInputDTO dto) {
         TaskOutputDTO updatedTask = taskService.updateTask(projectId, taskId, dto);
         return ResponseEntity.ok(updatedTask);
     }
@@ -71,7 +74,7 @@ public class TaskController {
     @PatchMapping(path = "/projects/{projectId}/tasks/{taskId}/status")
     public ResponseEntity<TaskOutputDTO> updateTaskStatus(@PathVariable Long projectId,
                                                           @PathVariable Long taskId,
-                                                          @RequestParam String newStatus) {
+                                                          @RequestParam @Valid String newStatus) {
         TaskOutputDTO updatedTask = taskService.updateTaskStatus(projectId, taskId, newStatus);
         return ResponseEntity.ok(updatedTask);
     }

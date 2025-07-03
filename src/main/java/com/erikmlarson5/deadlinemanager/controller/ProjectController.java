@@ -4,13 +4,16 @@ import com.erikmlarson5.deadlinemanager.dto.ProjectInputDTO;
 import com.erikmlarson5.deadlinemanager.dto.ProjectOutputDTO;
 import com.erikmlarson5.deadlinemanager.service.ProjectService;
 import com.erikmlarson5.deadlinemanager.utils.Status;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping(path = "/api/v1/projects")
 public class ProjectController {
@@ -22,13 +25,13 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<ProjectOutputDTO> createProject(@RequestBody ProjectInputDTO dto) {
+    public ResponseEntity<ProjectOutputDTO> createProject(@RequestBody @Valid ProjectInputDTO dto) {
         ProjectOutputDTO createdProject = projectService.createProject(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
     }
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable long id) {
+    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable Long id) {
         ProjectOutputDTO project = projectService.getProjectById(id);
         return ResponseEntity.ok(project);
     }
@@ -46,13 +49,13 @@ public class ProjectController {
     }
 
     @GetMapping(path = "/status")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByStatus(@RequestParam Status status) {
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByStatus(@RequestParam @Valid Status status) {
         List<ProjectOutputDTO> projectsByStatus = projectService.getProjectsByStatus(status);
         return ResponseEntity.ok(projectsByStatus);
     }
 
     @GetMapping(path = "/due-in")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam int days) {
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam @Valid int days) {
         List<ProjectOutputDTO> projectsDueIn = projectService.getProjectsDueInDays(days);
         return ResponseEntity.ok(projectsDueIn);
     }
@@ -71,14 +74,14 @@ public class ProjectController {
 
     @PutMapping(path = "/{id}")
     public ResponseEntity<ProjectOutputDTO> updateProject(@PathVariable Long id,
-                                                          @RequestBody ProjectInputDTO dto) {
+                                                          @RequestBody @Valid ProjectInputDTO dto) {
         ProjectOutputDTO updatedProject = projectService.updateProject(id, dto);
         return ResponseEntity.ok(updatedProject);
     }
 
     @PatchMapping(path = "/{id}/status")
     public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable Long id,
-                                                                @RequestParam String newStatus) {
+                                                                @RequestParam @Valid String newStatus) {
         ProjectOutputDTO updatedProject = projectService.updateProjectStatus(id, newStatus);
         return ResponseEntity.ok(updatedProject);
     }
