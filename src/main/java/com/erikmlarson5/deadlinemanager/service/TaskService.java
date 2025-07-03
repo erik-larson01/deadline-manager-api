@@ -91,16 +91,6 @@ public class TaskService {
         return allOutputDTOs;
     }
 
-
-    public List<TaskOutputDTO> getTasksInProjectByPriority(Long projectId) {
-        List<Task> allTasks = taskRepository.findByProject_ProjectIdOrderByPriorityDesc(projectId);
-        List<TaskOutputDTO> allOutputDTOs = new ArrayList<>();
-        for (Task task : allTasks) {
-            allOutputDTOs.add(TaskMapper.toOutputDto(task));
-        }
-        return allOutputDTOs;
-    }
-
     public List<TaskOutputDTO> getIncompleteTasksInProject(Long projectId) {
         List<Task> allTasks = taskRepository.findByProject_ProjectId(projectId);
         List<TaskOutputDTO> incompleteTasks = new ArrayList<>();

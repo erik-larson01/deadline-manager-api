@@ -60,12 +60,6 @@ public class TaskController {
         return ResponseEntity.ok(incompleteTasks);
     }
 
-    @GetMapping(path = "/projects/{projectId}/tasks/priority")
-    public ResponseEntity<List<TaskOutputDTO>> getTasksInProjectByPriority(@PathVariable Long projectId) {
-        List<TaskOutputDTO> tasksInPriority = taskService.getTasksInProjectByPriority(projectId);
-        return ResponseEntity.ok(tasksInPriority);
-    }
-
     @PutMapping(path = "/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<TaskOutputDTO> updateTask(@PathVariable Long projectId,
                                                     @PathVariable Long taskId,
