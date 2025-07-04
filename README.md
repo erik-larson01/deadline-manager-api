@@ -9,6 +9,14 @@ Deadline Manager is a RESTful API and backend system built with Java, Spring Boo
 At its core, the application enables users to define high-level projects and decompose them into smaller, actionable tasks with their own due dates, estimated effort, and difficulty ratings.
 
 By offering structured support for both project-level planning and task-level execution, this API encourages users to focus on what matters most and stay organized under time pressure.
+## Table of Contents
+- [Motivation](#motivation)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [API Endpoints](#api-endpoints)
+- [File Structure](#file-structure)
+- [Getting Started](#getting-started)
+- [Future Improvements](#future-improvements)
 
 ## Motivation
 This project began with a question I asked myself during my programming coursework at UW–Madison:
@@ -42,7 +50,7 @@ I'm proud of what this project has become and look forward to expanding it into 
 - PostgreSQL
 - Jakarta Validation
 
-### API Endpoints
+## API Endpoints
 
 | HTTP Method | Endpoint | Description |
 | --- | --- | --- |
@@ -92,3 +100,79 @@ deadline-manager/
 ├── pom.xml                          # Maven dependencies and build config
 └── README.md
 ```
+
+## Getting Started
+
+### Prerequisites
+
+-   Java 17+
+
+-   [Maven](https://maven.apache.org/install.html)
+
+-   [PostgreSQL](https://www.postgresql.org/download/)
+
+### 1\. Clone the repository
+
+```bash
+git clone https://github.com/erik-larson01/deadline-manager-api.git
+cd deadline-manager-api
+```
+
+### 2\. Set Up the Database
+
+1.  Start your PostgreSQL server.
+
+2.  Create a database:
+
+```sql 
+CREATE DATABASE deadline_manager_db;
+```
+
+3.  Create a user and give it access:
+
+```sql
+CREATE USER your_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE deadline_manager_db TO your_user;
+```
+
+### 3\. Update application.properties
+```
+# Application Name
+spring.application.name=Deadline Manager API
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/deadline_manager_db
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+
+# JPA / Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# Server Port
+# server.port=8080
+```
+
+### 4\.Build and run the app
+Use Maven to build and run the Spring Boot app:
+
+```bash
+./mvnw spring-boot:run
+```
+Once started, the API will be available at:
+
+```
+http://localhost:8080/api/v1/
+```
+
+## Future Improvements
+
+-   **Frontend Interface**: Build a user-friendly React or vanilla HTML/CSS frontend to visualize and manage projects and tasks more intuitively.
+
+-   **Authentication & Authorization**: Add user login support with role-based access to secure project/task data.
+
+-   **Notification System**: Implement email or in-app reminders for upcoming deadlines.
+
+-   **Advanced Priority Tuning**: Allow users to customize the weight of different priority factors (due date, difficulty, etc.).
