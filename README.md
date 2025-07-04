@@ -16,6 +16,7 @@ By offering structured support for both project-level planning and task-level ex
 - [API Endpoints](#api-endpoints)
 - [File Structure](#file-structure)
 - [Getting Started](#getting-started)
+- [Example Queries](#example-queries)
 - [Future Improvements](#future-improvements)
 
 ## Motivation
@@ -165,6 +166,44 @@ Once started, the API will be available at:
 
 ```
 http://localhost:8080/api/v1/
+```
+## Example Queries
+Create a Project
+```
+POST /api/v1/projects
+Content-Type: application/json
+
+{
+  "title": "Final Essay",
+  "description": "Write the final essay for History 101",
+  "course": "History 101",
+  "dueDate": "2025-07-20",
+  "weight": 20,
+  "difficulty": 5,
+  "status": "IN_PROGRESS"
+}
+```
+
+Create a Task in a Project
+
+```
+POST /api/v1/projects/1/tasks
+Content-Type: application/json
+
+{
+  "title": "Research topic",
+  "description": "Gather sources for essay",
+  "dueDate": "2025-07-10",
+  "estimatedHours": 5,
+  "difficulty": 3,
+  "status": "NOT_STARTED",
+  "projectId": 1
+}
+```
+
+Update Task Status
+```
+PATCH /api/v1/projects/1/tasks/3/status?newStatus=COMPLETED
 ```
 
 ## Future Improvements
