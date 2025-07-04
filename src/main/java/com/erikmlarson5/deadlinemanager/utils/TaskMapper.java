@@ -5,7 +5,16 @@ import com.erikmlarson5.deadlinemanager.dto.TaskOutputDTO;
 import com.erikmlarson5.deadlinemanager.entity.Project;
 import com.erikmlarson5.deadlinemanager.entity.Task;
 
+/**
+ * Mapper methods for clean Task DTO conversions
+ */
 public class TaskMapper {
+    /**
+     * Maps an input DTO to a Postgres database entity
+     * @param dto the input DTO
+     * @param project the project object associated with the task
+     * @return the DTO in entity form
+     */
     public static Task toEntity(TaskInputDTO dto, Project project) {
         Task task = new Task();
         task.setTitle(dto.getTitle());
@@ -18,6 +27,11 @@ public class TaskMapper {
         return task;
     }
 
+    /**
+     * Maps a database entity to an output DTO
+     * @param task the task entity to be converted
+     * @return the entity in outputDTO form
+     */
     public static TaskOutputDTO toOutputDto(Task task) {
         TaskOutputDTO dto = new TaskOutputDTO();
         dto.setTaskId(task.getTaskId());

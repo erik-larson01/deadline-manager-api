@@ -5,6 +5,9 @@ import com.erikmlarson5.deadlinemanager.entity.Project;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * A DTO for Tasks which is returned to the user in a ResponseEntity
+ */
 public class TaskOutputDTO {
 
     private Long taskId;

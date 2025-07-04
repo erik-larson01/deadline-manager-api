@@ -17,16 +17,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/**
+ * Service layer for all project endpoints which connects to the repository layer
+ */
 @Service
 @Transactional
 public class ProjectService {
     private final ProjectRepository projectRepository;
 
+    /**
+     * Project service which connects to the repository layer
+     * @param projectRepository injected repository to manage projects
+     */
     @Autowired
     public ProjectService(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
 
+    /**
+     * Creates a project and saves to PostgresSQL
+     * @param dto the inputDTO of all project fields
+     * @return an outputDTO of the saved project
+     */
     public ProjectOutputDTO createProject(ProjectInputDTO dto) {
         Project project = ProjectMapper.toEntity(dto);
         if (projectRepository.existsByTitleAndCourse(project.getTitle(), project.getCourse())) {
@@ -39,12 +51,22 @@ public class ProjectService {
         return ProjectMapper.toOutputDto(savedProject);
     }
 
+    /**
+     * Gets a project by its unique id
+     * @param id the id of the project
+     * @return an outputDTO of the found project
+     */
     public ProjectOutputDTO getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
         return ProjectMapper.toOutputDto(project);
     }
 
+    /**
+     * Gets all projects with a shared course field
+     * @param course the name of the course to search by
+     * @return a list of all projects in the provided class, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getProjectsInCourse(String course) {
         List<Project> allProjects = projectRepository.findByCourseIgnoreCase(course);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
@@ -54,6 +76,10 @@ public class ProjectService {
         return allOutputDTOs;
     }
 
+    /**
+     * Gets a list of all projects
+     * @return a list of all projects, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getAllProjects() {
         List<Project> allProjects = projectRepository.findAll();
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
@@ -63,6 +89,11 @@ public class ProjectService {
         return allOutputDTOs;
     }
 
+    /**
+     * Gets a list of all projects due in X days,
+     * @param days the number of days until a given deadline
+     * @return a list of all projects due in X days, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getProjectsDueInDays(int days) {
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(days);
@@ -74,6 +105,12 @@ public class ProjectService {
         }
         return allOutputDTOs;
     }
+
+    /**
+     * Gets a list of all projects by an enum status
+     * @param status the status query to search by
+     * @return a list of all projects by specific status, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getProjectsByStatus(Status status) {
         List<Project> allProjects = projectRepository.findByStatus(status);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
@@ -83,10 +120,18 @@ public class ProjectService {
         return allOutputDTOs;
     }
 
+    /**
+     * Gets all projects with a status of COMPLETED
+     * @return a list of all incomplete tasks in a project, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getCompletedProjects() {
         return getProjectsByStatus(Status.COMPLETED);
     }
 
+    /**
+     * Gets all projects in a list, sorted by calculated priority
+     * @return a list of projects in priority order, converted to outputDTOs
+     */
     public List<ProjectOutputDTO> getProjectsSortedByPriority() {
         List<Project> allProjects = projectRepository.findAllByOrderByPriorityDesc();
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
@@ -96,6 +141,13 @@ public class ProjectService {
         return allOutputDTOs;
     }
 
+    /**
+     * Fully updates all fields of a project, replacing every value and field including priority
+     * and tasks
+     * @param id the id of the project to update
+     * @param dto an inputDTO object of all fields to replace
+     * @return an outputDTO of the updated and saved task
+     */
     public ProjectOutputDTO updateProject(Long id, ProjectInputDTO dto) {
         Project existingProject = projectRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not found!"));
@@ -115,6 +167,12 @@ public class ProjectService {
         return ProjectMapper.toOutputDto(existingProject);
     }
 
+    /**
+     * Updates only a project's enum status
+     * @param id the id of the project to update
+     * @param newStatus the new status to change to
+     * @return an outputDTO of the updated and saved task
+     */
     public ProjectOutputDTO updateProjectStatus(Long id, String newStatus) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not " + "found!"));
@@ -125,6 +183,9 @@ public class ProjectService {
         return ProjectMapper.toOutputDto(project);
     }
 
+    /**
+     * Recalculates all project priorities to account for the current date and time
+     */
     public void updateAllProjectPriorities() {
         List<Project> projects = projectRepository.findAll();
         for (Project project : projects) {
@@ -134,12 +195,21 @@ public class ProjectService {
         projectRepository.saveAll(projects);
     }
 
+    /**
+     * Deletes a project in the database
+     * @param id the id of the project to delete
+     */
     public void deleteProject(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Project with id: " + id + " not found!"));
         projectRepository.delete(project);
     }
 
+    /**
+     * Calculates the priority of a project using 5 different factors
+     * @param project the project to calculate priority for
+     * @return a priority score from 0-10
+     */
     public float calculatePriority(Project project) {
         LocalDate today = LocalDate.now();
         LocalDate dueDate = project.getDueDate();
@@ -179,6 +249,11 @@ public class ProjectService {
         return Math.round(Math.min(priority, 10.0) * 10f) / 10f;
     }
 
+    /**
+     * Used to calculate the total estimated hours across all tasks
+     * @param project the project to calculate the total for
+     * @return the total estimated hours across all tasks, or 5.0 if none
+     */
     private double calculateRemainingWork(Project project) {
         if (project.getTasks() == null || project.getTasks().isEmpty()) {
             return 5.0;
@@ -193,6 +268,11 @@ public class ProjectService {
         return totalHours;
     }
 
+    /**
+     * Used to calculate a time pressure score based on urgency
+     * @param daysLeft the number of days until a project's deadline
+     * @return a score based on estimated time pressure
+     */
     private double calculateTimePressureScore(long daysLeft) {
         if (daysLeft <= 0) {
             return 10.0;
@@ -210,6 +290,11 @@ public class ProjectService {
         }
     }
 
+    /**
+     * Used to calculate a workload score based on estimated hours left in a project
+     * @param hoursRemaining estimated hours left in a given project
+     * @return a score based on estimated workload
+     */
     private double calculateWorkloadScore(double hoursRemaining) {
         if (hoursRemaining <= 0) {
             return 1.0; // Completed work
@@ -227,6 +312,11 @@ public class ProjectService {
         }
     }
 
+    /**
+     * Calculates a progress score based on the number of completed tasks, or 5.0 if none
+     * @param project the project to calculate the score for
+     * @return a score based on estimated progress
+     */
     private double calculateProgressScore(Project project) {
         List<Task> allTasks = project.getTasks();
         if (allTasks.isEmpty()) {

@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The database entity of all Projects and its included fields
+ */
 @Entity
 @Table
 public class Project {

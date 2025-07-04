@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * A JPA repository for all task related functions, connecting to PostgresSQL
+ */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByStatus(Status status);

@@ -2,6 +2,9 @@ package com.erikmlarson5.deadlinemanager.dto;
 
 import java.time.LocalDateTime;
 
+/**
+ * A DTO containing an error message of thrown exceptions and the timestamp when it occurred
+ */
 public class ErrorResponseDTO {
     private String message;
     private LocalDateTime timestamp;

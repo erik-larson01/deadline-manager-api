@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A DTO for Projects which is returned to the user in a ResponseEntity
+ */
 public class ProjectOutputDTO {
 
     private Long projectId;

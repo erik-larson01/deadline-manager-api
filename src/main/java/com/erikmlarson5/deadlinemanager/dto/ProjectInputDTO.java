@@ -4,6 +4,9 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
+/**
+ * A DTO which validates all fields of an incoming Project
+ */
 public class ProjectInputDTO {
 
     @NotBlank(message = "Title must not be blank")

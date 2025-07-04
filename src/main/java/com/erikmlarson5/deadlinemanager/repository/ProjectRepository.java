@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * A JPA repository for all project related functions, connecting to PostgresSQL
+ */
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByStatus(Status status);

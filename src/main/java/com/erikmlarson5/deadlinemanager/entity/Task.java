@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * The database entity of all Tasks and its included fields
+ */
 @Entity
 @Table
 public class Task {

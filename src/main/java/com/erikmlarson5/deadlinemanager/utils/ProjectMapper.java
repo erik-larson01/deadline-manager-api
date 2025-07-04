@@ -9,8 +9,16 @@ import com.erikmlarson5.deadlinemanager.entity.Task;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Mapper methods for clean Project DTO conversions
+ */
 public class ProjectMapper {
 
+    /**
+     * Maps an input DTO to a Postgres database entity
+     * @param dto the input DTO
+     * @return the DTO in entity form
+     */
     public static Project toEntity(ProjectInputDTO dto) {
         Project project = new Project();
         project.setTitle(dto.getTitle());
@@ -23,6 +31,11 @@ public class ProjectMapper {
         return project;
     }
 
+    /**
+     * Maps a database entity to an output DTO
+     * @param project the project entity to be converted
+     * @return the entity in outputDTO form
+     */
     public static ProjectOutputDTO toOutputDto(Project project) {
         ProjectOutputDTO dto = new ProjectOutputDTO();
         dto.setProjectId(project.getProjectId());
