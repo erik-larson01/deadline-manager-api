@@ -3,6 +3,30 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+dist
+dist-ssr
+*.local
+
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
 ### STS ###
 .apt_generated
 .classpath
@@ -29,5 +53,3 @@ build/
 !**/src/test/**/build/
 backend/src/main/resources/application.properties
 .mvn/wrapper/maven-wrapper.properties
-### VS Code ###
-.vscode/
