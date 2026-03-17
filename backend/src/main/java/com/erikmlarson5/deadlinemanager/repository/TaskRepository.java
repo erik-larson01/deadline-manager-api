@@ -1,6 +1,4 @@
 package com.erikmlarson5.deadlinemanager.repository;
-
-import com.erikmlarson5.deadlinemanager.entity.Project;
 import com.erikmlarson5.deadlinemanager.entity.Task;
 import com.erikmlarson5.deadlinemanager.utils.Status;
 import org.springframework.data.jpa.repository.JpaRepository;

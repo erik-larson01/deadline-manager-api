@@ -1,6 +1,5 @@
 package com.erikmlarson5.deadlinemanager.controller;
 
-import com.erikmlarson5.deadlinemanager.dto.ProjectOutputDTO;
 import com.erikmlarson5.deadlinemanager.dto.TaskInputDTO;
 import com.erikmlarson5.deadlinemanager.dto.TaskOutputDTO;
 import com.erikmlarson5.deadlinemanager.service.TaskService;

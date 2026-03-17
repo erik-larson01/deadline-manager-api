@@ -78,7 +78,7 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-        if (!task.getProject().getProjectId().equals(projectId)) {
+        if (!task.getProject().getProjectId().equals(project.getProjectId())) {
             throw new IllegalArgumentException("Task does not belong to this project");
         }
 

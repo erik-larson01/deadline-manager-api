@@ -1,7 +1,5 @@
 package com.erikmlarson5.deadlinemanager.dto;
 
-import com.erikmlarson5.deadlinemanager.entity.Project;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
