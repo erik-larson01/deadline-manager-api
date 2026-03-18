@@ -61,7 +61,7 @@ public class TaskService {
         project.setPriority(newPriority);
         projectRepository.save(project);
 
-        Task savedTask = taskRepository.save(task);
+        Task savedTask = project.getTasks().getLast();
         return TaskMapper.toOutputDto(savedTask);
     }
 
