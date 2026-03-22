@@ -41,8 +41,8 @@ public class ProjectService {
      */
     public ProjectOutputDTO createProject(ProjectInputDTO dto) {
         Project project = ProjectMapper.toEntity(dto);
-        if (projectRepository.existsByTitleAndCourse(project.getTitle(), project.getCourse())) {
-            throw new IllegalStateException("Project with the same title and course already exists");
+        if (projectRepository.existsByTitle(project.getTitle())) {
+            throw new IllegalStateException("Project with the same title already exists!");
         }
         float priority = calculatePriority(project);
         project.setPriority(priority);
@@ -152,11 +152,16 @@ public class ProjectService {
         Project existingProject = projectRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not found!"));
 
+        if (!existingProject.getTitle().equals(dto.getTitle()) &&
+                projectRepository.existsByTitle(dto.getTitle())) {
+            throw new IllegalStateException("Project with the same title already exists");
+        }
+
         existingProject.setTitle(dto.getTitle());
         existingProject.setDescription(dto.getDescription());
         existingProject.setCourse(dto.getCourse());
         existingProject.setDueDate(dto.getDueDate());
-        existingProject.setWeight(dto.getWeight());
+        existingProject.setEstimatedHours(dto.getEstimatedHours());
         existingProject.setDifficulty(dto.getDifficulty());
         existingProject.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
 
@@ -225,22 +230,20 @@ public class ProjectService {
         // Time pressure based on days left
         double timePressureScore = calculateTimePressureScore(daysLeft);
 
-        // Project importance based on grade percentage weight
-        double importanceScore = Math.min(Math.max(project.getWeight(), 0), 10);
-
         // Workload factor based on estimated hours of all tasks
         double workloadScore = calculateWorkloadScore(totalHoursRemaining);
 
-        // Difficulty factor based on user input (0-10)
-        double difficultyFactor = Math.min(Math.max(project.getDifficulty(), 0), 10);
+        // Difficulty factor based on user input (0-10); null uses neutral midpoint.
+        double difficultyFactor = project.getDifficulty() != null
+                ? Math.min(Math.max(project.getDifficulty(), 0), 10)
+                : 5.0;
 
         // Progress factor based on completed tasks
         double progressScore = calculateProgressScore(project);
 
-        double baseScore = (timePressureScore * 0.4) +
-                (importanceScore * 0.3) +
-                (workloadScore * 0.15) +
-                (progressScore * 0.15);
+        double baseScore = (timePressureScore * 0.5) +
+                (workloadScore * 0.3) +
+                (progressScore * 0.2);
 
         // Adds a multiplier for more difficult projects
         double difficultyMultiplier = 1.0 + (difficultyFactor / 20.0);
@@ -256,12 +259,15 @@ public class ProjectService {
      */
     private double calculateRemainingWork(Project project) {
         if (project.getTasks() == null || project.getTasks().isEmpty()) {
+            if (project.getEstimatedHours() != null) {
+                return Math.max(project.getEstimatedHours(), 0f);
+            }
             return 5.0;
         }
 
         double totalHours = 0.0;
         for (Task task : project.getTasks()) {
-            if (task.getStatus() != Status.COMPLETED) {
+            if (task.getStatus() != Status.COMPLETED && task.getEstimatedHours() != null) {
                 totalHours += task.getEstimatedHours();
             }
         }
@@ -319,7 +325,7 @@ public class ProjectService {
      */
     private double calculateProgressScore(Project project) {
         List<Task> allTasks = project.getTasks();
-        if (allTasks.isEmpty()) {
+        if (allTasks == null || allTasks.isEmpty()) {
             // Neutral progress score for projects without tasks, if any
             return 5.0;
         }
