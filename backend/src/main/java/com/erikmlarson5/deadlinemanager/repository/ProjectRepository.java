@@ -17,7 +17,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findAllByOrderByPriorityDesc();
 
-    boolean existsByTitleAndCourse(String title, String course);
+    boolean existsByTitle(String title);
 
     List<Project> findByCourseIgnoreCase(String course);
 

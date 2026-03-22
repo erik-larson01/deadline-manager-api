@@ -25,9 +25,9 @@ public class ProjectMapper {
         project.setDescription(dto.getDescription());
         project.setCourse(dto.getCourse());
         project.setDueDate(dto.getDueDate());
-        project.setWeight(dto.getWeight());
+        project.setEstimatedHours(dto.getEstimatedHours());
         project.setDifficulty(dto.getDifficulty());
-        project.setStatus(Status.valueOf(dto.getStatus()));
+        project.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
         return project;
     }
 
@@ -43,9 +43,9 @@ public class ProjectMapper {
         dto.setDescription(project.getDescription());
         dto.setCourse(project.getCourse());
         dto.setDueDate(project.getDueDate());
-        dto.setWeight(project.getWeight());
+        dto.setEstimatedHours(project.getEstimatedHours());
         dto.setDifficulty(project.getDifficulty());
-        dto.setStatus(project.getStatus().name());
+        dto.setStatus(project.getStatus() != null ? project.getStatus().name() : null);
         dto.setPriority(project.getPriority());
         dto.setCreatedAt(project.getCreatedAt());
         dto.setUpdatedAt(project.getUpdatedAt());
