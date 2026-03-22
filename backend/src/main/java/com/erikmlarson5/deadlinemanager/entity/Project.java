@@ -21,20 +21,18 @@ public class Project {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
     private String description;
+
     private String course;
 
     @Column(nullable = false)
     private LocalDate dueDate;
 
-    @Column(nullable = false)
-    private float weight;
-
-    @Column(nullable = false)
-    private int difficulty;
+    private Integer difficulty;
 
     private float priority = 0.0f;
+
+    private Float estimatedHours;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -53,12 +51,12 @@ public class Project {
     }
 
     public Project(String title, String description, String course, LocalDate dueDate,
-                   float weight, int difficulty, Status status) {
+                   Float estimatedHours, Integer difficulty, Status status) {
         this.title = title;
         this.description = description;
         this.course = course;
         this.dueDate = dueDate;
-        this.weight = weight;
+        this.estimatedHours = estimatedHours;
         this.difficulty = difficulty;
         this.status = status;
     }
@@ -99,19 +97,11 @@ public class Project {
         this.dueDate = dueDate;
     }
 
-    public void setWeight(float weight) {
-        this.weight = weight;
-    }
-
-    public float getWeight() {
-        return weight;
-    }
-
-    public int getDifficulty() {
+    public Integer getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(int difficulty) {
+    public void setDifficulty(Integer difficulty) {
         this.difficulty = difficulty;
     }
 
@@ -143,6 +133,14 @@ public class Project {
         this.updatedAt = updatedAt;
     }
 
+    public void setEstimatedHours(Float estimatedHours) {
+        this.estimatedHours = estimatedHours;
+    }
+
+    public Float getEstimatedHours() {
+        return estimatedHours;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
@@ -151,7 +149,7 @@ public class Project {
         return tasks;
     }
 
-    public void setTasks(ArrayList<Task> tasks) {
+    public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
     }
 
@@ -183,7 +181,7 @@ public class Project {
                 ", description='" + description + '\'' +
                 ", course='" + course + '\'' +
                 ", dueDate=" + dueDate +
-                ", weight=" + weight +
+                ", estimatedHours=" + estimatedHours +
                 ", difficulty=" + difficulty +
                 ", priority=" + priority +
                 ", status=" + status +

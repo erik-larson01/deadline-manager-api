@@ -19,17 +19,15 @@ public class Task {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
     private String description;
 
     @Column(nullable = false)
     private LocalDate dueDate;
 
     @Column(nullable = false)
-    private float estimatedHours;
+    private Float estimatedHours;
 
-    @Column(nullable = false)
-    private int difficulty;
+    private Integer difficulty;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -48,8 +46,8 @@ public class Task {
 
     }
 
-    public Task(String title, String description, LocalDate dueDate, int difficulty,
-                Status status, float estimatedHours, Project project) {
+    public Task(String title, String description, LocalDate dueDate, Integer difficulty,
+                Status status, Float estimatedHours, Project project) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
@@ -87,11 +85,11 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public int getDifficulty() {
+    public Integer getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(int difficulty) {
+    public void setDifficulty(Integer difficulty) {
         this.difficulty = difficulty;
     }
 
@@ -119,8 +117,8 @@ public class Task {
         return updatedAt;
     }
 
-    public float getEstimatedHours() { return estimatedHours; }
-    public void setEstimatedHours(float estimatedHours) { this.estimatedHours = estimatedHours; }
+    public Float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(Float estimatedHours) { this.estimatedHours = estimatedHours; }
 
     @PrePersist
     protected void onCreate() {
