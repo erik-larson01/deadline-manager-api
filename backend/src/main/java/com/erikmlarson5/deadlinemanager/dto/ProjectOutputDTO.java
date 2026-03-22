@@ -14,8 +14,8 @@ public class ProjectOutputDTO {
     private String description;
     private String course;
     private LocalDate dueDate;
-    private float weight;
-    private int difficulty;
+    private Float estimatedHours;
+    private Integer difficulty;
     private String status;
     private float priority;
     private LocalDateTime createdAt;
@@ -37,11 +37,11 @@ public class ProjectOutputDTO {
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 
-    public float getWeight() { return weight; }
-    public void setWeight(float weight) { this.weight = weight; }
+    public Float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(Float estimatedHours) { this.estimatedHours = estimatedHours; }
 
-    public int getDifficulty() { return difficulty; }
-    public void setDifficulty(int difficulty) { this.difficulty = difficulty; }
+    public Integer getDifficulty() { return difficulty; }
+    public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

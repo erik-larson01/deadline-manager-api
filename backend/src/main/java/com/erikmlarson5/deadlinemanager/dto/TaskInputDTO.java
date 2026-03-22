@@ -30,9 +30,6 @@ public class TaskInputDTO {
     @NotBlank(message = "Status is required")
     private String status;
 
-    @NotNull(message = "Project ID is required")
-    private Long projectId;
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
@@ -50,7 +47,4 @@ public class TaskInputDTO {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public Long getProjectID() { return projectId; }
-    public void setProjectId(Long projectId) { this.projectId = projectId; }
 }

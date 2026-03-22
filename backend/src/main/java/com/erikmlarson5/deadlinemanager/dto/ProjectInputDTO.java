@@ -12,7 +12,6 @@ public class ProjectInputDTO {
     @NotBlank(message = "Title must not be blank")
     private String title;
 
-    @NotBlank(message = "Description must not be blank")
     private String description;
 
     private String course;
@@ -21,13 +20,12 @@ public class ProjectInputDTO {
     @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "Weight must be >= 0")
-    @DecimalMax(value = "100.0", inclusive = true, message = "Weight must be <= 100")
-    private float weight;
+    @DecimalMin(value = "0.0", inclusive = true, message = "Estimated hours must be >= 0")
+    private Float estimatedHours;
 
     @Min(value = 1, message = "Difficulty must be between 1 and 10")
     @Max(value = 10, message = "Difficulty must be between 1 and 10")
-    private int difficulty;
+    private Integer difficulty;
 
     @NotBlank(message = "Status is required")
     private String status;
@@ -44,11 +42,11 @@ public class ProjectInputDTO {
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 
-    public float getWeight() { return weight; }
-    public void setWeight(float weight) { this.weight = weight; }
+    public Float getEstimatedHours() { return estimatedHours; }
+    public void setEstimatedHours(Float estimatedHours) { this.estimatedHours = estimatedHours; }
 
-    public int getDifficulty() { return difficulty; }
-    public void setDifficulty(int difficulty) { this.difficulty = difficulty; }
+    public Integer getDifficulty() { return difficulty; }
+    public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
