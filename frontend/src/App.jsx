@@ -1,6 +1,6 @@
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import AppLayout from './components/AppLayout'
+import AppLayout from './components/layout/AppLayout'
 import Dashboard from './pages/Dashboard'
 import ProjectsOverview from './pages/ProjectsOverview'
 import ProjectDetail from './pages/ProjectDetail'
