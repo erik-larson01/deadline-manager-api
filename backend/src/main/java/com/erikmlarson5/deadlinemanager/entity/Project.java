@@ -23,7 +23,7 @@ public class Project {
 
     private String description;
 
-    private String course;
+    private String category;
 
     @Column(nullable = false)
     private LocalDate dueDate;
@@ -50,11 +50,11 @@ public class Project {
 
     }
 
-    public Project(String title, String description, String course, LocalDate dueDate,
+    public Project(String title, String description, String category, LocalDate dueDate,
                    Float estimatedHours, Integer difficulty, Status status) {
         this.title = title;
         this.description = description;
-        this.course = course;
+        this.category = category;
         this.dueDate = dueDate;
         this.estimatedHours = estimatedHours;
         this.difficulty = difficulty;
@@ -81,12 +81,12 @@ public class Project {
         this.description = description;
     }
 
-    public String getCourse() {
-        return course;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCourse(String course) {
-        this.course = course;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public LocalDate getDueDate() {
@@ -179,7 +179,7 @@ public class Project {
                 "projectId=" + projectId +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", course='" + course + '\'' +
+                ", category='" + category + '\'' +
                 ", dueDate=" + dueDate +
                 ", estimatedHours=" + estimatedHours +
                 ", difficulty=" + difficulty +

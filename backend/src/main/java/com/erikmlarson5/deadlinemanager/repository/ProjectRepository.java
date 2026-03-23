@@ -19,7 +19,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     boolean existsByTitle(String title);
 
-    List<Project> findByCourseIgnoreCase(String course);
+    List<Project> findByCategoryIgnoreCase(String category);
 
     List<Project> findByDueDateBetween(LocalDate start, LocalDate end);
 }

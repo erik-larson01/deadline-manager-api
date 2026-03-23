@@ -23,7 +23,7 @@ public class ProjectMapper {
         Project project = new Project();
         project.setTitle(dto.getTitle());
         project.setDescription(dto.getDescription());
-        project.setCourse(dto.getCourse());
+        project.setCategory(dto.getCategory());
         project.setDueDate(dto.getDueDate());
         project.setEstimatedHours(dto.getEstimatedHours());
         project.setDifficulty(dto.getDifficulty());
@@ -41,7 +41,7 @@ public class ProjectMapper {
         dto.setProjectId(project.getProjectId());
         dto.setTitle(project.getTitle());
         dto.setDescription(project.getDescription());
-        dto.setCourse(project.getCourse());
+        dto.setCategory(project.getCategory());
         dto.setDueDate(project.getDueDate());
         dto.setEstimatedHours(project.getEstimatedHours());
         dto.setDifficulty(project.getDifficulty());

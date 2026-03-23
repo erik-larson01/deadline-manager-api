@@ -63,12 +63,12 @@ public class ProjectService {
     }
 
     /**
-     * Gets all projects with a shared course field
-     * @param course the name of the course to search by
-     * @return a list of all projects in the provided class, converted to outputDTOs
+     * Gets all projects with a shared category field
+     * @param category the name of the category to search by
+     * @return a list of all projects in the provided category, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getProjectsInCourse(String course) {
-        List<Project> allProjects = projectRepository.findByCourseIgnoreCase(course);
+    public List<ProjectOutputDTO> getProjectsInCategory(String category) {
+        List<Project> allProjects = projectRepository.findByCategoryIgnoreCase(category);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
@@ -159,7 +159,7 @@ public class ProjectService {
 
         existingProject.setTitle(dto.getTitle());
         existingProject.setDescription(dto.getDescription());
-        existingProject.setCourse(dto.getCourse());
+        existingProject.setCategory(dto.getCategory());
         existingProject.setDueDate(dto.getDueDate());
         existingProject.setEstimatedHours(dto.getEstimatedHours());
         existingProject.setDifficulty(dto.getDifficulty());

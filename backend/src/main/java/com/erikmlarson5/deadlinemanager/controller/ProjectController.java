@@ -64,14 +64,14 @@ public class ProjectController {
     }
 
     /**
-     * Creates an endpoint to get all projects by a given course
-     * @param course the course to search by
+     * Creates an endpoint to get all projects by a given category
+     * @param category the category to search by
      * @return a response entity containing the found projects
      */
-    @GetMapping(path = "/course/{course}")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByCourse(@PathVariable String course) {
-        List<ProjectOutputDTO> courseProjects = projectService.getProjectsInCourse(course);
-        return ResponseEntity.ok(courseProjects);
+    @GetMapping(path = "/category/{category}")
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByCategory(@PathVariable String category) {
+        List<ProjectOutputDTO> categoryProjects = projectService.getProjectsInCategory(category);
+        return ResponseEntity.ok(categoryProjects);
     }
 
     /**

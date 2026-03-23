@@ -14,7 +14,7 @@ public class ProjectInputDTO {
 
     private String description;
 
-    private String course;
+    private String category;
 
     @NotNull(message = "Due date is required")
     @FutureOrPresent(message = "Due date cannot be in the past")
@@ -36,8 +36,8 @@ public class ProjectInputDTO {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getCourse() { return course; }
-    public void setCourse(String course) { this.course = course; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }

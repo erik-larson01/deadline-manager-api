@@ -12,7 +12,7 @@ public class ProjectOutputDTO {
     private Long projectId;
     private String title;
     private String description;
-    private String course;
+    private String category;
     private LocalDate dueDate;
     private Float estimatedHours;
     private Integer difficulty;
@@ -31,8 +31,8 @@ public class ProjectOutputDTO {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getCourse() { return course; }
-    public void setCourse(String course) { this.course = course; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
