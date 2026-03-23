@@ -56,6 +56,10 @@ function CreateProjectModal({onClose, onProjectCreated}) {
       setIsLoading(false)
     }
   }
+  
+  // Ensure required fields are filled before allowing form submission
+  const isValid = form.title.trim() !== "" && form.dueDate !== ""
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-40"/>
@@ -77,6 +81,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                     Title <span className="text-red-500">*</span>
                   </label>
                   <input
+                    required
                     id="title"
                     name="title"
                     type="text"
@@ -93,6 +98,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                       Due Date <span className="text-red-500">*</span>
                     </label>
                     <input
+                      required
                       id="dueDate"
                       name="dueDate"
                       value={form.dueDate}
@@ -108,6 +114,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                       Status <span className="text-red-500">*</span>
                     </label>
                     <select
+                      required
                       id="status"
                       name="status"
                       value={form.status}
@@ -190,7 +197,10 @@ function CreateProjectModal({onClose, onProjectCreated}) {
             <button onClick={onClose} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors duration-200">
               Cancel
             </button>
-            <button form="create-project-form" type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200">
+            <button 
+              form="create-project-form" type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200"
+              disabled={!isValid}
+            >
               {isLoading ? (
                   <>
                     <LoaderCircle className="animate-spin" size={16} />
