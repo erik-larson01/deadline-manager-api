@@ -3,7 +3,12 @@ import { Plus } from "lucide-react"
 import CreateProjectModal from "../components/projects/CreateProjectModal"
 function ProjectsOverview() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [projects, setProjects] = useState([])
 
+  // Add created project to list of projects in state without refetching from API
+  const handleCreatedProject = (newProject) => {
+    setProjects((prevProjects) => [...prevProjects, newProject])
+  }
   return (
     <div className="p-6">
 
@@ -19,10 +24,12 @@ function ProjectsOverview() {
       
       {/* Placeholder for project cards */}
       
-      <CreateProjectModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && (
+        <CreateProjectModal 
+          onClose={() => setIsModalOpen(false)}
+          onProjectCreated={handleCreatedProject}
+        />
+      )}
     </div>
   )
 }
