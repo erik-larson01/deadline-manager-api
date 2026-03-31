@@ -2,6 +2,8 @@ import { X, LoaderCircle } from "lucide-react"
 import { useState } from "react"
 function CreateProjectModal({onClose, onProjectCreated}) {
   const [isLoading, setIsLoading] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
+
   // Form to be passed to API when creating project
   const [form, setForm] = useState({
     title: "",
@@ -27,6 +29,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
   // Sends form data to API to create project, then closes modal on success
   async function handleFormSubmit(e) {
     e.preventDefault()
+    setSubmitError(null)
     setIsLoading(true)
 
     // Fetch request to create project, then update parent component state with new project and close modal
@@ -45,13 +48,27 @@ function CreateProjectModal({onClose, onProjectCreated}) {
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to create project")
+      // On error, retrieve the error message to display to the user
+      if (!response.ok) {
+        let message = "Failed to create project." // Default
+
+        if (response.status >= 500) {
+          message = "Server error. Please try again later."
+        } else {
+          try {
+            const errorData = await response.json()
+            message = errorData.message || message
+          } catch {} // If the error did not return json (failed to fetch)
+        }
+        throw new Error(message)
+      }
+
       const newProject = await response.json()
   
       onProjectCreated(newProject)
       onClose()
     } catch (error) {
-      console.error("Error creating project:", error)
+      setSubmitError(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -88,7 +105,11 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                     value={form.title}
                     onChange={handleInputChange}
                     placeholder="Enter project title"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200
+                      ${submitError?.toLowerCase().includes("title")
+                        ? "border-red-500"
+                        : "border-gray-300"
+                      }`}
                   />
                 </div>
 
@@ -192,6 +213,12 @@ function CreateProjectModal({onClose, onProjectCreated}) {
               </div>
             </form>
           </div>
+
+          {submitError && (
+            <p className="text-sm text-red-500 px-6 py-2 border-t border-red-100">
+              {submitError}
+            </p>
+          )}
 
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
             <button onClick={onClose} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors duration-200">
