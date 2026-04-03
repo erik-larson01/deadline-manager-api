@@ -1,14 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronRight, Folder, FolderKanban, LayoutDashboard } from "lucide-react";
+import ProjectsContext from "../../contexts/ProjectsContext";
 
 function Sidebar() {
   const [projectsOpen, setProjectsOpen] = useState(false);
-
-  const projects = [
-    { id: 1, title: "Project A" },
-    { id: 2, title: "Project B (With Example Text Overflow)" },
-  ];
+  const [projects, setProjects] = useContext(ProjectsContext)
 
   return (
     <aside className="h-full w-48 border-r border-gray-200 flex flex-col">
@@ -53,8 +50,8 @@ function Sidebar() {
           <div className="space-y-1 pl-3">
             {projects.map((project) => (
               <NavLink
-                key={project.id}
-                to={`/projects/${project.id}`}
+                key={project.projectId}
+                to={`/projects/${project.projectId}`}
                 className={({ isActive }) =>
                   `flex items-center px-3 py-1.5 rounded-md text-sm transition-colors duration-200 truncate
                   ${isActive ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"}`
