@@ -47,7 +47,7 @@ function Sidebar() {
         </div>
 
         {projectsOpen && (
-          <div className="space-y-1 pl-3">
+          <div className="space-y-1 pl-3 overflow-y-auto max-h-96">
             {projects.map((project) => (
               <NavLink
                 key={project.projectId}
