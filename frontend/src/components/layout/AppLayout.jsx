@@ -10,7 +10,7 @@ function AppLayout() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch all current DB projects on mount
+  // Fetch all current DB projects on mount and load into context
   useEffect(() => {
     async function fetchProjects() {
       try {
@@ -25,7 +25,7 @@ function AppLayout() {
         const data = await response.json()
         setProjects(data)
       } catch (fetchError) {
-        setError(fetchError.message || "Unable to load projects")
+        setError(fetchError.message)
       } finally {
         setIsLoading(false)
       }
@@ -41,6 +41,7 @@ function AppLayout() {
         <div className='flex flex-1 overflow-hidden'>
           <Sidebar />
           <main className='flex-1 overflow-y-auto p-6'>
+            {/** Return Outlet only if page is not loading and there is no error, otherwise render a loading or error message */}
             {isLoading ? (
               <div className='flex min-h-[60vh] items-center justify-center rounded-xl border border-gray-200 bg-white p-8 shadow-sm'>
                 <LoaderCircle className='h-20 w-20 animate-spin text-indigo-600' />
