@@ -4,6 +4,7 @@ import { ChevronRight, Folder, FolderKanban, LayoutDashboard } from "lucide-reac
 import ProjectsContext from "../../contexts/ProjectsContext";
 
 function Sidebar() {
+  // Use state to track dropdown toggle
   const [projectsOpen, setProjectsOpen] = useState(false);
   const { projects } = useContext(ProjectsContext)
 
@@ -11,6 +12,7 @@ function Sidebar() {
     <aside className="h-full w-48 border-r border-gray-200 flex flex-col">
       <nav className="flex-1 p-3 space-y-1">
 
+        {/** Link to Dashboard */}
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
@@ -22,6 +24,7 @@ function Sidebar() {
           Dashboard
         </NavLink>
 
+        {/** Link to Projects */}
         <div className="flex items-center rounded-md hover:bg-gray-100 transition-colors duration-200">
           <NavLink
             to="/projects"
@@ -46,6 +49,7 @@ function Sidebar() {
           </button>
         </div>
 
+        {/** Render all projects with a link to their ProjectDetail pages via id */}
         {projectsOpen && (
           <div className="space-y-1 pl-3 overflow-y-auto max-h-96">
             {projects.map((project) => (
