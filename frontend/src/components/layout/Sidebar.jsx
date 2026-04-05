@@ -5,7 +5,7 @@ import ProjectsContext from "../../contexts/ProjectsContext";
 
 function Sidebar() {
   const [projectsOpen, setProjectsOpen] = useState(false);
-  const [projects, setProjects] = useContext(ProjectsContext)
+  const { projects } = useContext(ProjectsContext)
 
   return (
     <aside className="h-full w-48 border-r border-gray-200 flex flex-col">

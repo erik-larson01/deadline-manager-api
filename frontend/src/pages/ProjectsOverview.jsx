@@ -6,7 +6,7 @@ import ProjectsContext from "../contexts/ProjectsContext"
 
 function ProjectsOverview() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [projects, setProjects] = useContext(ProjectsContext)
+  const { projects, setProjects } = useContext(ProjectsContext)
 
   // Add created project to list of projects in state without refetching from API
   const handleCreatedProject = (newProject) => {
