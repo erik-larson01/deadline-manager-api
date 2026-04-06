@@ -102,7 +102,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                     id="title"
                     name="title"
                     type="text"
-                    maxLength={255}
+                    maxLength={70}
                     value={form.title}
                     onChange={handleInputChange}
                     placeholder="Enter project title"
@@ -157,6 +157,7 @@ function CreateProjectModal({onClose, onProjectCreated}) {
                     id="category"
                     name="category"
                     type="text"
+                    maxLength={20}
                     value={form.category}
                     onChange={handleInputChange}
                     placeholder="Work, School, Personal"
