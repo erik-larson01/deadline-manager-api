@@ -168,8 +168,8 @@ public class ProjectService {
         float newPriority = calculatePriority(existingProject);
         existingProject.setPriority(newPriority);
 
-        projectRepository.save(existingProject);
-        return ProjectMapper.toOutputDto(existingProject);
+        Project savedProject = projectRepository.saveAndFlush(existingProject);
+        return ProjectMapper.toOutputDto(savedProject);
     }
 
     /**
