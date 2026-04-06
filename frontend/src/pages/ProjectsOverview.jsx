@@ -1,9 +1,9 @@
 import { useContext, useState } from "react"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom"
-import CreateProjectModal from "../components/projects/CreateProjectModal"
+import CreateProjectModal from "../components/modals/CreateProjectModal"
 import ProjectsContext from "../contexts/ProjectsContext"
-import EditProjectModal from "../components/projects/EditProjectModal"
+import EditProjectModal from "../components/modals/EditProjectModal"
 
 function ProjectsOverview() {
   const { projects, setProjects } = useContext(ProjectsContext)
@@ -30,6 +30,9 @@ function ProjectsOverview() {
     setSelectedProject(null)
   }
 
+  const handleDeletedProject = (projectId) => {
+    
+  }
   // Opens the project edit modal for a specific project
   const handleOpenEditModal = (event, project) => {
     event.preventDefault()
@@ -242,14 +245,25 @@ function ProjectsOverview() {
                     </p>
                   </div>
                 </Link>
-
-                <button
+                
+                <div className="flex justify-end gap-2">
+                  <button
                   type="button"
                   onClick={(event) => handleOpenEditModal(event, project)}
-                  className="absolute bottom-4 right-4 inline-flex items-center justify-center rounded-full bg-indigo-100 p-2 text-indigo-700 opacity-0 transition-all duration-200 hover:bg-indigo-200 hover:text-indigo-800 group-hover:opacity-100"
-                >
-                  <Pencil size={16} />
-                </button>
+                  className="inline-flex items-center justify-center rounded-full bg-indigo-100 p-2 text-indigo-700 opacity-0 transition-all duration-200 hover:bg-indigo-200 hover:text-indigo-800 group-hover:opacity-100"
+                  >
+                    <Pencil size={16} />
+                  </button>
+
+                  <button
+                  type="button"
+                  onClick={(event) => handleDeletedProject(event, project.projectId)}
+                  className="inline-flex items-center justify-center rounded-full bg-indigo-100 p-2 text-indigo-700 opacity-0 transition-all duration-200 hover:bg-indigo-200 hover:text-indigo-800 group-hover:opacity-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
               </div>
             )
           })}
