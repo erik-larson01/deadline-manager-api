@@ -1,9 +1,10 @@
 import { useContext, useState } from "react"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom"
-import CreateProjectModal from "../components/modals/CreateProjectModal"
+import CreateProjectModal from "../components/projects/CreateProjectModal"
 import ProjectsContext from "../contexts/ProjectsContext"
-import EditProjectModal from "../components/modals/EditProjectModal"
+import EditProjectModal from "../components/projects/EditProjectModal"
+import DeleteProjectModal from "../components/projects/DeleteProjectModal"
 
 function ProjectsOverview() {
   const { projects, setProjects } = useContext(ProjectsContext)
@@ -11,35 +12,50 @@ function ProjectsOverview() {
   // States to track status of modal - either open or closed
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  // State to track which project 
+  // State to track which project is selected for editing or deleting
   const [selectedProject, setSelectedProject] = useState(null)
 
-  // Add created project to list of projects in state without refetching from API
+  // Add created project to list of projects in state
   const handleCreatedProject = (newProject) => {
     setProjects((prevProjects) => [...prevProjects, newProject])
   }
 
-  // Updates state of a projects by changing only the project with a matching projectId to the selected project
+  // Updates the metadata of a project
   const handleUpdatedProject = (updatedProject) => {
     setProjects((prevProjects) =>
       prevProjects.map((project) =>
+        // Update only the project that has a matching projectId with the current selected project
         project.projectId === updatedProject.projectId ? updatedProject : project
       )
     )
     setSelectedProject(null)
   }
 
+  // Removes a project with a given projectId from the state of projects
   const handleDeletedProject = (projectId) => {
-    
+    setProjects((prevProjects) => 
+      prevProjects.filter((project) =>
+        project.projectId !== projectId
+      )
+    )
   }
+
   // Opens the project edit modal for a specific project
   const handleOpenEditModal = (event, project) => {
     event.preventDefault()
-    // Stops a click from also clicking the project card
     event.stopPropagation()
     setSelectedProject(project)
     setIsEditModalOpen(true)
+  }
+
+  // Opens the project delete modal for a specific project
+  const handleOpenDeleteModal = (event, project) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setSelectedProject(project)
+    setIsDeleteModalOpen(true)
   }
 
   // Formats the API dueDate string to readable text
@@ -119,7 +135,7 @@ function ProjectsOverview() {
       }
     }
 
-    // Normalizes today to midnight
+    // Normalizes today to midnight 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -236,7 +252,7 @@ function ProjectsOverview() {
                   </div>
 
                   {/** Due Date Section */}
-                  <div className="mt-4 border-t border-gray-200 pt-4 pr-11">
+                  <div className="mt-4 border-t border-gray-200 pt-4 pr-24">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                       Due Date
                     </p>
@@ -246,7 +262,7 @@ function ProjectsOverview() {
                   </div>
                 </Link>
                 
-                <div className="flex justify-end gap-2">
+                <div className="absolute bottom-4 right-4 flex items-center gap-2">
                   <button
                   type="button"
                   onClick={(event) => handleOpenEditModal(event, project)}
@@ -257,8 +273,8 @@ function ProjectsOverview() {
 
                   <button
                   type="button"
-                  onClick={(event) => handleDeletedProject(event, project.projectId)}
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-100 p-2 text-indigo-700 opacity-0 transition-all duration-200 hover:bg-indigo-200 hover:text-indigo-800 group-hover:opacity-100"
+                  onClick={(event) => handleOpenDeleteModal(event, project)}
+                  className="inline-flex items-center justify-center rounded-full bg-rose-100 p-2 text-rose-700 opacity-0 transition-all duration-200 hover:bg-rose-200 hover:text-rose-800 group-hover:opacity-100"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -284,6 +300,17 @@ function ProjectsOverview() {
             setSelectedProject(null)
           }}
           onProjectEdited={handleUpdatedProject}
+          project={selectedProject}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <DeleteProjectModal
+          onClose={() => {
+            setIsDeleteModalOpen(false)
+            setSelectedProject(null)
+          }}
+          onProjectDeleted={handleDeletedProject}
           project={selectedProject}
         />
       )}
