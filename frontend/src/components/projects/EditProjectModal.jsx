@@ -92,6 +92,11 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
 
   const isValid = form.title.trim() !== "" && form.dueDate !== ""
 
+  // Ensure the min date for the due date input is in local time to prevent timezone issues
+  const localCreatedAt = new Date(project.createdAt)
+  localCreatedAt.setHours(0, 0, 0, 0) // local midnight
+  const minDateStr = localCreatedAt.toISOString().split('T')[0]
+
   // Don't render the modal if there is no project data
   if (!project) return null
 
@@ -143,7 +148,7 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                       name="dueDate"
                       value={form.dueDate}
                       onChange={handleInputChange}
-                      min={new Date(project.createdAt).toISOString().split('T')[0]}
+                      min={minDateStr}
                       type="date"
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                     />
