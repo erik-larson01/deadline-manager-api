@@ -1,1 +1,1 @@
-Frontend using React, React Router, and React Bootstrap
+Frontend using React, React Router, and TailwindCSS
