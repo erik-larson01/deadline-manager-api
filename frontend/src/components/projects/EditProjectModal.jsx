@@ -143,7 +143,7 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                       name="dueDate"
                       value={form.dueDate}
                       onChange={handleInputChange}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={new Date(project.createdAt).toISOString().split('T')[0]}
                       type="date"
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                     />
