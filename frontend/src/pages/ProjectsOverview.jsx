@@ -22,7 +22,7 @@ function ProjectsOverview() {
     DUE_DATE_DESC: "dueDate-desc",
   }
 
-  // States to track status of modal - either open or closed
+  // States to track status of modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -35,6 +35,7 @@ function ProjectsOverview() {
 
   // State to track selected category in category dropdown
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES_OPTION)
+
   // State to track whether completed projects are shown or hidden
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -134,7 +135,7 @@ function ProjectsOverview() {
     return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
   })
 
-  // Projects that will be rendered as cards. These are calculated after search and sorting have been completed
+  // Projects that will be rendered as cards. These are calculated after filtering and sorting have been completed
   const activeProjects = sortedProjects.filter((project) => project.status !== "COMPLETED")
   const completedProjects = sortedProjects.filter((project) => project.status === "COMPLETED")
 
@@ -146,7 +147,7 @@ function ProjectsOverview() {
   const allProjectsCompleted = projects.length > 0 && projects.every((project) => project.status === "COMPLETED")
 
   // If not searching and all projects are completed: show the no active projects default message.
-  // If searching with no active matches: show that all matching projects are completed.
+  // If searching with no active project matches: show that all matching projects are completed.
   const activeProjectsEmptyMessage = !isSearching && allProjectsCompleted
     ? "No active projects right now."
     : "No active projects match your filters. All matching projects are completed."
