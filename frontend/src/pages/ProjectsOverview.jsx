@@ -9,10 +9,23 @@ import DeleteProjectModal from "../components/projects/DeleteProjectModal"
 function ProjectsOverview() {
   const { projects, setProjects } = useContext(ProjectsContext)
 
+  // List of sort options for project sort dropdown to avoid hardcoding strings
+  const SORT_OPTIONS = {
+    CREATED_AT_DESC: "createdAt-desc",
+    TITLE_ASC: "title-asc",
+    PRIORITY_ASC: "priority-asc",
+    PRIORITY_DESC: "priority-desc",
+    DUE_DATE_ASC: "dueDate-asc",
+    DUE_DATE_DESC: "dueDate-desc",
+  }
+
   // States to track status of modal - either open or closed
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  // State to track which sort option is selected in the dropdown
+  const [sortBy, setSortBy] = useState(SORT_OPTIONS.CREATED_AT_DESC)
 
   // State to track which project is selected for editing or deleting
   const [selectedProject, setSelectedProject] = useState(null)
@@ -164,12 +177,68 @@ function ProjectsOverview() {
     }
   }
 
+  // Safely convert date-like values to timestamps for stable sorting.
+  const getTimestamp = (dateString, fallback = Number.POSITIVE_INFINITY) => {
+    const timestamp = new Date(dateString).getTime()
+    return Number.isNaN(timestamp) ? fallback : timestamp
+  }
+
+  // Sorts projects based on the selected sort option in the dropdown
+  const sortedProjects = [...projects].sort((a, b) => {
+    if (sortBy === SORT_OPTIONS.TITLE_ASC) {
+      return a.title.localeCompare(b.title, "en", {
+        sensitivity: "base",
+        numeric: true,
+      })
+    }
+
+    if (sortBy === SORT_OPTIONS.PRIORITY_ASC) {
+      return a.priority - b.priority
+    }
+
+    if (sortBy === SORT_OPTIONS.PRIORITY_DESC) {
+      return b.priority - a.priority
+    }
+
+    if (sortBy === SORT_OPTIONS.DUE_DATE_ASC) {
+      return getTimestamp(a.dueDate) - getTimestamp(b.dueDate)
+    }
+
+    if (sortBy === SORT_OPTIONS.DUE_DATE_DESC) {
+      return getTimestamp(b.dueDate) - getTimestamp(a.dueDate)
+    }
+
+    // Default: newest first by creation date.
+    return getTimestamp(b.createdAt, Number.NEGATIVE_INFINITY) - getTimestamp(a.createdAt, Number.NEGATIVE_INFINITY)
+  })
+
   return (
     <div className="p-6">
 
       {/** Top Row of Projects Overview */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
+          <div className="flex items-center gap-2">
+            <label htmlFor="project-sort" className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Sort
+            </label>
+            <select
+              id="project-sort"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              <option value={SORT_OPTIONS.CREATED_AT_DESC}>Newest first</option>
+              <option value={SORT_OPTIONS.TITLE_ASC}>Title (A-Z)</option>
+              <option value={SORT_OPTIONS.PRIORITY_ASC}>Priority (Low-High)</option>
+              <option value={SORT_OPTIONS.PRIORITY_DESC}>Priority (High-Low)</option>
+              <option value={SORT_OPTIONS.DUE_DATE_ASC}>Due date (Soonest)</option>
+              <option value={SORT_OPTIONS.DUE_DATE_DESC}>Due date (Latest)</option>
+            </select>
+          </div>
+        </div>
+
         <button 
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-200">
@@ -179,7 +248,7 @@ function ProjectsOverview() {
       </div>
 
       {/** Cards per project */}
-      {projects.length === 0 ? (
+      {sortedProjects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
           <h2 className="text-lg font-semibold text-gray-900">No projects yet</h2>
           <p className="mt-2 text-sm text-gray-500">
@@ -188,7 +257,7 @@ function ProjectsOverview() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => {
+          {sortedProjects.map((project) => {
             const priorityInfo = getPriorityInfo(project.priority)
             const dueInfo = getDueInfo(project.dueDate)
 
