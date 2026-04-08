@@ -75,8 +75,8 @@ function ProjectsOverview() {
   }
 
   // Normalizes date string to timestamp in milliseconds for sorting comparison
-    const getTimestamp = (dateString) => {
-      return new Date(dateString).getTime()
+  const getTimestamp = (dateString) => {
+    return new Date(dateString).getTime()
   }
 
   // Sorts projects based on the selected sort option in the dropdown
