@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 function ProjectCard({project, isCompleted, onEdit, onDelete}) {
   // Formats the API dueDate string to readable text
-  const formatDueDate = (dateString) => {
+  const formatDueDateLabel = (dateString) => {
     if (!dateString) return "No due date"
 
     const dueDate = new Date(`${dateString}T00:00:00`)
@@ -15,7 +15,7 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
   }
 
   // Updates card style based on completion status
-  const getStatusStyle = (status) => {
+  const getStatusBadgeStyle = (status) => {
     const styles = {
       COMPLETED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
       IN_PROGRESS: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100",
@@ -26,7 +26,7 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
   }
 
   // Transform project API status to readable text "IN_PROGRESS" -> In Progress
-  const formatStatus = (status) => {
+  const formatStatusLabel = (status) => {
     // Handles backend error
     if (!status) return "Unknown"
 
@@ -37,8 +37,18 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
       .join(" ")
   }
 
-  // Creates dynamic coloring for priority based on priority value {label, style}
-  const getPriorityInfo = (priority) => {
+  // Creates dynamic coloring for priority based on priority value and project status
+  const getPriorityStyleInfo = (priority, status) => {
+    // Set Priority to "Completed" and gray out the badge
+    if (status === "COMPLETED") {
+      return {
+        label: "Completed",
+        style: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+      }
+    }
+
+    // Otherwise use the numeric priority to determine the badge color
+
     const numericPriority = Number(priority)
 
     // Handles backend error
@@ -69,21 +79,8 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
     }
   }
 
-  // Creates card styling and new priority label for Completed Projects
-  const getEffectivePriorityInfo = (projectData) => {
-    // If a project is completed, override the priority display to show "Completed" instead of the numeric priority value
-    if (projectData?.status === "COMPLETED") {
-      return {
-        label: "Completed",
-        style: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
-      }
-    }
-
-    return getPriorityInfo(projectData?.priority)
-  }
-
   // Creates dynamic coloring for "due in X days" based on difference from today to due date (Red, Yellow, Green)
-  const getDueInfo = (dateString) => {
+  const getDueDateStyleInfo = (dateString) => {
     // Handles backend error
     if (!dateString) {
       return {
@@ -121,10 +118,11 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
     }
   }
 
-  const statusClassName = getStatusStyle(project.status)
-  const statusLabel = formatStatus(project.status)
-  const priorityInfo = getEffectivePriorityInfo(project)
-  const dueInfo = getDueInfo(project.dueDate)
+  // Get styles and labels for status, priority, and due date based on project data
+  const statusBadgeStyle = getStatusBadgeStyle(project.status)
+  const statusLabel = formatStatusLabel(project.status)
+  const priorityInfo = getPriorityStyleInfo(project.priority, project.status)
+  const dueDateInfo = getDueDateStyleInfo(project.dueDate)
 
   return (
     <div
@@ -154,7 +152,7 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
             )}
           </div>
 
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClassName}`}>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeStyle}`}>
             {statusLabel}
           </span>
         </div>
@@ -180,9 +178,9 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
 
             {!isCompleted && (
               <span
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dueInfo.style}`}
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dueDateInfo.style}`}
               >
-                {dueInfo.label}
+                {dueDateInfo.label}
               </span>
             )}
           </div>
@@ -194,11 +192,12 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
             Due Date
           </p>
           <p className="mt-1 text-sm font-medium text-gray-800">
-            {formatDueDate(project.dueDate)}
+            {formatDueDateLabel(project.dueDate)}
           </p>
         </div>
       </Link>
 
+      {/** Edit and Delete Buttons */}
       <div className="absolute bottom-4 right-4 flex items-center gap-2">
         <button
           type="button"
@@ -221,3 +220,4 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
 }
 
 export default ProjectCard
+
