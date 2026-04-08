@@ -27,6 +27,9 @@ function ProjectsOverview() {
   // State to track which sort option is selected in the dropdown
   const [sortBy, setSortBy] = useState(SORT_OPTIONS.CREATED_AT_DESC)
 
+  // State to track title search input value
+  const [titleSearch, setTitleSearch] = useState("")
+
   // State to track whether completed projects are shown or hidden
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -79,8 +82,15 @@ function ProjectsOverview() {
     return new Date(dateString).getTime()
   }
 
+  const normalizedTitleSearch = titleSearch.trim().toLowerCase()
+
+  // Filter projects by title
+  const filteredProjects = projects.filter((project) => {
+    return project.title.toLowerCase().includes(normalizedTitleSearch)
+  })
+
   // Sorts projects based on the selected sort option in the dropdown
-  const sortedProjects = [...projects].sort((a, b) => {
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
     if (sortBy === SORT_OPTIONS.TITLE_ASC) {
       return a.title.localeCompare(b.title, "en", {
         sensitivity: "base",
@@ -108,20 +118,40 @@ function ProjectsOverview() {
       return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
   })
 
+  // Projects that will be rendered as cards. These are calculated after search and sorting have been completed
   const activeProjects = sortedProjects.filter((project) => project.status !== "COMPLETED")
   const completedProjects = sortedProjects.filter((project) => project.status === "COMPLETED")
+
+  const isSearching = normalizedTitleSearch.length > 0
+  const allProjectsCompleted = projects.length > 0 && projects.every((project) => project.status === "COMPLETED")
+
+  // If not searching and all projects are completed: show the no active projects default message.
+  // If searching with no active matches: show that all matching projects are completed.
+  const activeProjectsEmptyMessage = !isSearching && allProjectsCompleted
+    ? "No active projects right now."
+    : "No active projects match your filters. All matching projects are completed."
 
   return (
     <div className="p-6">
 
-      {/** Top Row of Projects Overview */}
+      {/** Top Section of Projects Overview */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
+          {/** Page Title and Search/Sort Controls */}
           <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
           <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={titleSearch}
+              onChange={(event) => setTitleSearch(event.target.value)}
+              placeholder="Search titles"
+              aria-label="Search projects by title"
+              className="w-52 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            />
             <label htmlFor="project-sort" className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Sort
             </label>
+
             <select
               id="project-sort"
               value={sortBy}
@@ -138,6 +168,7 @@ function ProjectsOverview() {
           </div>
         </div>
 
+        {/** New Project Button */}
         <button 
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-200">
@@ -146,16 +177,24 @@ function ProjectsOverview() {
         </button>
       </div>
 
-      {/** Cards per project */}
-      {sortedProjects.length === 0 ? (
+      {/** Projects Grid */}
+      {projects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
           <h2 className="text-lg font-semibold text-gray-900">No projects yet</h2>
           <p className="mt-2 text-sm text-gray-500">
             Create your first project to start tracking deadlines and momentum.
           </p>
         </div>
+      ) : sortedProjects.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
+          <h2 className="text-lg font-semibold text-gray-900">No matching projects</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Try a different title search.
+          </p>
+        </div>
       ) : (
         <div className="space-y-8">
+          {/** Active Projects Section with Hide/Show Toggle */}
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">Active Projects</h2>
@@ -172,7 +211,7 @@ function ProjectsOverview() {
 
             {activeProjects.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center">
-                <p className="text-sm text-gray-600">No active projects right now.</p>
+                <p className="text-sm text-gray-600">{activeProjectsEmptyMessage}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -189,6 +228,7 @@ function ProjectsOverview() {
             )}
           </section>
 
+          {/** Completed Projects Section */}
           {showCompleted && completedProjects.length > 0 && (
             <section>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Completed Projects</h2>
