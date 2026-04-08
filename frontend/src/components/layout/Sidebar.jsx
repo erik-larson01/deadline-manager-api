@@ -8,6 +8,14 @@ function Sidebar() {
   const [projectsOpen, setProjectsOpen] = useState(false);
   const { projects } = useContext(ProjectsContext)
 
+  // Sort projects alphabetically by title, ignoring case and handling numeric sorting (e.g. "Project 2" before "Project 10")
+  const alphabetizedProjects = [...projects].sort((a, b) =>
+    a.title.localeCompare(b.title, "en", { 
+      sensitivity: "base", 
+      numeric: true 
+    })
+  );
+
   return (
     <aside className="h-full w-48 border-r border-gray-200 flex flex-col">
       <nav className="flex-1 p-3 space-y-1">
@@ -52,7 +60,7 @@ function Sidebar() {
         {/** Render all projects with a link to their ProjectDetail pages via id */}
         {projectsOpen && (
           <div className="space-y-1 pl-3 overflow-y-auto max-h-96">
-            {projects.map((project) => (
+            {alphabetizedProjects.map((project) => (
               <NavLink
                 key={project.projectId}
                 to={`/projects/${project.projectId}`}
