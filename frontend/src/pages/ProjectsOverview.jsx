@@ -74,10 +74,9 @@ function ProjectsOverview() {
     setIsDeleteModalOpen(true)
   }
 
-  // Safely convert date-like values to timestamps for stable sorting.
-  const getTimestamp = (dateString, fallback = Number.POSITIVE_INFINITY) => {
-    const timestamp = new Date(dateString).getTime()
-    return Number.isNaN(timestamp) ? fallback : timestamp
+  // Normalizes date string to timestamp in milliseconds for sorting comparison
+    const getTimestamp = (dateString) => {
+      return new Date(dateString).getTime()
   }
 
   // Sorts projects based on the selected sort option in the dropdown
@@ -106,7 +105,7 @@ function ProjectsOverview() {
     }
 
     // Default: newest first by creation date.
-    return getTimestamp(b.createdAt, Number.NEGATIVE_INFINITY) - getTimestamp(a.createdAt, Number.NEGATIVE_INFINITY)
+      return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
   })
 
   const activeProjects = sortedProjects.filter((project) => project.status !== "COMPLETED")
@@ -198,7 +197,7 @@ function ProjectsOverview() {
                   <ProjectCard
                     key={project.projectId}
                     project={project}
-                    isCompleted
+                    isCompleted={true}
                     onEdit={handleOpenEditModal}
                     onDelete={handleOpenDeleteModal}
                   />
