@@ -9,6 +9,9 @@ import ProjectCard from "../components/projects/ProjectCard"
 function ProjectsOverview() {
   const { projects, setProjects } = useContext(ProjectsContext)
 
+  // Default category filter option
+  const ALL_CATEGORIES_OPTION = "ALL_CATEGORIES"
+
   // List of sort options for project sort dropdown to avoid hardcoding strings
   const SORT_OPTIONS = {
     CREATED_AT_DESC: "createdAt-desc",
@@ -30,6 +33,8 @@ function ProjectsOverview() {
   // State to track title search input value
   const [titleSearch, setTitleSearch] = useState("")
 
+  // State to track selected category in category dropdown
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES_OPTION)
   // State to track whether completed projects are shown or hidden
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -84,9 +89,20 @@ function ProjectsOverview() {
 
   const normalizedTitleSearch = titleSearch.trim().toLowerCase()
 
-  // Filter projects by title
+  // Build category options from all projects so the dropdown always reflects every category (alphabetized)
+  const categoryOptions = [...new Set(
+    projects
+      .map((project) => project.category?.trim())
+      .filter((category) => Boolean(category))
+  )].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+
+  // Filter projects by title and selected category
   const filteredProjects = projects.filter((project) => {
-    return project.title.toLowerCase().includes(normalizedTitleSearch)
+    const matchesTitle = project.title.toLowerCase().includes(normalizedTitleSearch)
+    const matchesCategory =
+      selectedCategory === ALL_CATEGORIES_OPTION || project.category === selectedCategory
+
+    return matchesTitle && matchesCategory
   })
 
   // Sorts projects based on the selected sort option in the dropdown
@@ -115,12 +131,16 @@ function ProjectsOverview() {
     }
 
     // Default: newest first by creation date.
-      return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
+    return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
   })
 
   // Projects that will be rendered as cards. These are calculated after search and sorting have been completed
   const activeProjects = sortedProjects.filter((project) => project.status !== "COMPLETED")
   const completedProjects = sortedProjects.filter((project) => project.status === "COMPLETED")
+
+  // Counts shown in the top header should represent all projects, not the current filtered subset
+  const allActiveProjectsCount = projects.filter((project) => project.status !== "COMPLETED").length
+  const allCompletedProjectsCount = projects.filter((project) => project.status === "COMPLETED").length
 
   const isSearching = normalizedTitleSearch.length > 0
   const allProjectsCompleted = projects.length > 0 && projects.every((project) => project.status === "COMPLETED")
@@ -135,21 +155,56 @@ function ProjectsOverview() {
     <div className="p-6">
 
       {/** Top Section of Projects Overview */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {/** Page Title and Search/Sort Controls */}
-          <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={titleSearch}
-              onChange={(event) => setTitleSearch(event.target.value)}
-              placeholder="Search titles"
-              aria-label="Search projects by title"
-              className="w-52 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            />
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
+            <p className="text-sm text-gray-600 pt-0.5">
+              Active ({allActiveProjectsCount}) : Completed ({allCompletedProjectsCount})
+            </p>
+          </div>
+
+          {/** New Project Button */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-200"
+          >
+            <Plus size={16} />
+            New Project
+          </button>
+        </div>
+
+        {/** Search/Filter/Sort Controls */}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <input
+            type="text"
+            value={titleSearch}
+            onChange={(event) => setTitleSearch(event.target.value)}
+            placeholder="Search titles"
+            aria-label="Search projects by title"
+            className="w-52 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          <label htmlFor="project-category" className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            Category
+          </label>
+
+          <select
+            id="project-category"
+            value={selectedCategory}
+            onChange={(event) => setSelectedCategory(event.target.value)}
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            <option value={ALL_CATEGORIES_OPTION}>All categories</option>
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+
+          <div className="ml-1 flex items-center gap-3">
             <label htmlFor="project-sort" className="text-xs font-medium uppercase tracking-wide text-gray-500">
-              Sort
+              Sort By
             </label>
 
             <select
@@ -167,14 +222,6 @@ function ProjectsOverview() {
             </select>
           </div>
         </div>
-
-        {/** New Project Button */}
-        <button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-200">
-          <Plus size={16} />
-          New Project
-        </button>
       </div>
 
       {/** Projects Grid */}
@@ -189,7 +236,7 @@ function ProjectsOverview() {
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
           <h2 className="text-lg font-semibold text-gray-900">No matching projects</h2>
           <p className="mt-2 text-sm text-gray-500">
-            Try a different title search.
+            Try a different title search or category filter.
           </p>
         </div>
       ) : (
@@ -248,6 +295,7 @@ function ProjectsOverview() {
         </div>
       )}
 
+      {/** Modals for creating, editing, and deleting projects. */}
       {isCreateModalOpen && (
         <CreateProjectModal 
           onClose={() => setIsCreateModalOpen(false)}
