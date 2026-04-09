@@ -6,6 +6,8 @@ import ProjectsContext from "../../contexts/ProjectsContext";
 function Sidebar() {
   // Use state to track dropdown toggle
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [activeProjectsOpen, setActiveProjectsOpen] = useState(false);
+  const [completedProjectsOpen, setCompletedProjectsOpen] = useState(false);
   const { projects } = useContext(ProjectsContext)
 
   // Sort projects alphabetically by title, ignoring case and handling numeric sorting (e.g. "Project 2" before "Project 10")
@@ -22,7 +24,6 @@ function Sidebar() {
   return (
     <aside className="h-full w-48 border-r border-gray-200 flex flex-col">
       <nav className="flex-1 p-3 space-y-1">
-
         {/** Link to Dashboard */}
         <NavLink
           to="/dashboard"
@@ -63,50 +64,69 @@ function Sidebar() {
         {/** Render all projects with a link to their ProjectDetail pages via id */}
         {projectsOpen && (
           <div className="space-y-1 pl-3 overflow-y-auto max-h-96">
+            {/** Active Projects */}
             {activeProjects.length > 0 && (
               <div className="space-y-1">
-                <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Active Projects ({activeProjects.length})
-                </p>
-                
-                {activeProjects.map((project) => (
-                  <NavLink
-                    key={project.projectId}
-                    to={`/projects/${project.projectId}`}
-                    className={({ isActive }) =>
-                      `flex items-center px-3 py-1.5 rounded-md text-sm transition-colors duration-200 truncate
-                      ${isActive ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"}`
-                    }
-                  >
-                    <Folder size={14} className="mr-2 shrink-0" />
-                    <span className="truncate" title={project.title}>
-                      {project.title}
-                    </span>
-                  </NavLink>
-                ))}
+                <button
+                  onClick={() => setActiveProjectsOpen(!activeProjectsOpen)}
+                  className="w-full flex items-center justify-between px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-500 hover:bg-gray-100 rounded-md"
+                >
+                  <span>Active Projects ({activeProjects.length})</span>
+                  <ChevronRight
+                    size={14}
+                    className={`ml-2 shrink-0 transition-transform duration-200 ${activeProjectsOpen ? "rotate-90" : "rotate-0"}`}
+                  />
+                </button>
+
+                {activeProjectsOpen &&
+                  activeProjects.map((project) => (
+                    <NavLink
+                      key={project.projectId}
+                      to={`/projects/${project.projectId}`}
+                      className={({ isActive }) =>
+                        `flex items-center px-3 py-1.5 rounded-md text-sm transition-colors duration-200 truncate
+                        ${isActive ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"}`
+                      }
+                    >
+                      <Folder size={14} className="mr-2 shrink-0" />
+                      <span className="truncate" title={project.title}>
+                        {project.title}
+                      </span>
+                    </NavLink>
+                  ))}
               </div>
             )}
 
+            {/** Completed Projects */}
             {completedProjects.length > 0 && (
               <div className="space-y-1 pt-2 border-t border-gray-200">
-                <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Completed Projects ({completedProjects.length})
-                </p>
-                {completedProjects.map((project) => (
-                  <NavLink
-                    key={project.projectId}
-                    to={`/projects/${project.projectId}`}
-                    className={({ isActive }) =>
-                      `flex items-center px-3 py-1.5 rounded-md text-sm transition-colors duration-200 truncate
-                      ${isActive ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"}`
-                    }
-                  >
-                    <Folder size={14} className="mr-2 shrink-0" />
-                    <span className="truncate" title={project.title}>
-                      {project.title}
-                    </span>
-                  </NavLink>
-                ))}
+                <button
+                  onClick={() => setCompletedProjectsOpen(!completedProjectsOpen)}
+                  className="w-full flex items-center justify-between px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-100 rounded-md"
+                >
+                  <span>Completed Projects ({completedProjects.length})</span>
+                  <ChevronRight
+                    size={14}
+                    className={`ml-2 shrink-0 transition-transform duration-200 ${completedProjectsOpen ? "rotate-90" : "rotate-0"}`}
+                  />
+                </button>
+
+                {completedProjectsOpen &&
+                  completedProjects.map((project) => (
+                    <NavLink
+                      key={project.projectId}
+                      to={`/projects/${project.projectId}`}
+                      className={({ isActive }) =>
+                        `flex items-center px-3 py-1.5 rounded-md text-sm transition-colors duration-200 truncate
+                        ${isActive ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"}`
+                      }
+                    >
+                      <Folder size={14} className="mr-2 shrink-0" />
+                      <span className="truncate" title={project.title}>
+                        {project.title}
+                      </span>
+                    </NavLink>
+                  ))}
               </div>
             )}
           </div>
