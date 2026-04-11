@@ -69,6 +69,17 @@ function ProjectDetail() {
     })
   }
 
+  const formatCompletedDateLabel = (dateString) => {
+    if (!dateString) return null
+
+    const completedDate = new Date(dateString)
+    return completedDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
   // Creates dynamic coloring for "due in X days" based on difference from today to due date (Red, Yellow, Green)
   const getDueDateStyleInfo = (dateString) => {
     // Handles backend error
@@ -290,6 +301,7 @@ function ProjectDetail() {
   const dueDateSummary = project.dueDate
     ? `${formatDueDateLabel(project.dueDate)} • ${dueDateInfo.label}`
     : dueDateInfo.label
+  const completedDateLabel = formatCompletedDateLabel(project.completedAt)
 
   return (
     <>
@@ -344,15 +356,17 @@ function ProjectDetail() {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current"
               />
             </div>
+            
             {project.category?.trim() && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
                 {project.category}
               </span>
             )}
+
             {statusValue === 'COMPLETED' ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
                 <Check size={12} />
-                Completed
+                {completedDateLabel ? `Completed ${completedDateLabel}` : 'Completed'}
               </span>
             ) : (
               <>

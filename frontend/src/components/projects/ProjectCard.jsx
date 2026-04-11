@@ -14,6 +14,18 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
     })
   }
 
+  // Formats completedAt datetime string from API to readable date text
+  const formatCompletedDateLabel = (dateString) => {
+    if (!dateString) return "Unknown date"
+
+    const completedDate = new Date(dateString)
+    return completedDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }
+
   // Updates card style based on completion status
   const getStatusBadgeStyle = (status) => {
     const styles = {
@@ -48,7 +60,6 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
     }
 
     // Otherwise use the numeric priority to determine the badge color
-
     const numericPriority = Number(priority)
 
     // Handles backend error
@@ -123,6 +134,10 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
   const statusLabel = formatStatusLabel(project.status)
   const priorityInfo = getPriorityStyleInfo(project.priority, project.status)
   const dueDateInfo = getDueDateStyleInfo(project.dueDate)
+  const completedDateLabel = formatCompletedDateLabel(project.completedAt)
+  const dueDateText = isCompleted
+    ? completedDateLabel
+    : formatDueDateLabel(project.dueDate)
 
   return (
     <div
@@ -176,23 +191,21 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
               {priorityInfo.label}
             </span>
 
-            {!isCompleted && (
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dueDateInfo.style}`}
-              >
-                {dueDateInfo.label}
-              </span>
-            )}
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isCompleted ? "bg-emerald-100 text-emerald-700" : dueDateInfo.style}`}
+            >
+              {isCompleted ? completedDateLabel : dueDateInfo.label}
+            </span>
           </div>
         </div>
 
         {/** Due Date Section */}
         <div className="mt-4 border-t border-gray-200 pt-4 pr-24">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-            Due Date
+            {isCompleted ? "Completed" : "Due Date"}
           </p>
           <p className="mt-1 text-sm font-medium text-gray-800">
-            {formatDueDateLabel(project.dueDate)}
+            {dueDateText}
           </p>
         </div>
       </Link>
