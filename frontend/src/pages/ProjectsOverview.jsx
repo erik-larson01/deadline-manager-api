@@ -1,8 +1,7 @@
 import { useContext, useState } from "react"
 import { Plus } from "lucide-react"
-import CreateProjectModal from "../components/projects/CreateProjectModal"
+import ProjectModal from "../components/projects/ProjectModal"
 import ProjectsContext from "../contexts/ProjectsContext"
-import EditProjectModal from "../components/projects/EditProjectModal"
 import DeleteProjectModal from "../components/projects/DeleteProjectModal"
 import ProjectCard from "../components/projects/ProjectCard"
 
@@ -298,19 +297,21 @@ function ProjectsOverview() {
 
       {/** Modals for creating, editing, and deleting projects. */}
       {isCreateModalOpen && (
-        <CreateProjectModal 
+        <ProjectModal
+          mode="create"
           onClose={() => setIsCreateModalOpen(false)}
-          onProjectCreated={handleCreatedProject}
+          onProjectSaved={handleCreatedProject}
         />
       )}
 
       {isEditModalOpen && (
-        <EditProjectModal
+        <ProjectModal
+          mode="edit"
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedProject(null)
           }}
-          onProjectEdited={handleUpdatedProject}
+          onProjectSaved={handleUpdatedProject}
           project={selectedProject}
         />
       )}

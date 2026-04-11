@@ -1,36 +1,61 @@
 import { X, LoaderCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
-function EditProjectModal({ onClose, onProjectEdited, project }) {
+// Default form values for both create and edit modes
+const getDefaultForm = () => ({
+  title: "",
+  dueDate: "",
+  status: "NOT_STARTED",
+  category: "",
+  description: "",
+  difficulty: 5,
+  estimatedHours: "",
+})
+
+function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState(null)
 
-  // Form to be passed to API when updating project
-  const [form, setForm] = useState({
-    title: "",
-    dueDate: "",
-    status: "NOT_STARTED",
-    category: "",
-    description: "",
-    difficulty: 5,
-    estimatedHours: "",
-  })
+  // Form to be passed to API when creating/updating a project
+  const [form, setForm] = useState(getDefaultForm)
 
-  // Load the selected project's data into the form so it can be edited
+  // On mount, Load selected project data in edit mode, or reset to default form in create mode
   useEffect(() => {
-    // Don't set the form for the modal if there is no project data
-    if (!project) return
+    if (mode === "edit") {
+      // Don't set the form for edit mode if there is no project data
+      if (!project) return
 
-    setForm({
-      title: project.title || "",
-      dueDate: project.dueDate || "",
-      status: project.status || "NOT_STARTED",
-      category: project.category || "",
-      description: project.description || "",
-      difficulty: project.difficulty ?? 5,
-      estimatedHours: project.estimatedHours ?? "",
-    })
-  }, [project])
+      setForm({
+        title: project.title || "",
+        dueDate: project.dueDate || "",
+        status: project.status || "NOT_STARTED",
+        category: project.category || "",
+        description: project.description || "",
+        difficulty: project.difficulty ?? 5,
+        estimatedHours: project.estimatedHours ?? "",
+      })
+      return // Exit early to avoid resetting form to default values after setting project data
+    }
+
+    // Set the form to default values in create mode
+    setForm(getDefaultForm())
+  }, [mode, project])
+
+  // Don't render the modal if in edit mode and no project is selected (safeguard)
+  if (mode === "edit" && !project) return null
+
+  // Ensure date inputs receive YYYY-MM-DD in local time to avoid timezone shift issues
+  const getLocalDateString = (dateInput = new Date()) => {
+    // Create a date object and set time to midnight to avoid timezone shifts causing the date to display as the day before
+    const date = new Date(dateInput)
+    date.setHours(0, 0, 0, 0)
+
+    // Build a YYYY-MM-DD string with leading zeros for month and day
+    const year = date.getFullYear()
+    const month = `${date.getMonth() + 1}`.padStart(2, "0")
+    const day = `${date.getDate()}`.padStart(2, "0")
+    return `${year}-${month}-${day}`
+  }
 
   const handleInputChange = (e) => {
     // Ensure difficulty is always a number not a string
@@ -43,15 +68,24 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
     }))
   }
 
-  // Updates the project via PUT in the database, updates the project fields within the shared projects context, then closes the form
+  // Sends form data to API to create or update project, then closes modal on success
   async function handleFormSubmit(e) {
     e.preventDefault()
     setSubmitError(null)
     setIsLoading(true)
 
+    // Determine request behavior based on modal mode
+    const isEditMode = mode === "edit"
+
+    // Fetch request creates or updates project, then updates parent component state and closes modal
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${project.projectId}`, {
-        method: "PUT",
+      // Send update request if in edit mode, or create request if in create mode
+      const url = isEditMode
+        ? `${import.meta.env.VITE_API_URL}/projects/${project.projectId}`
+        : `${import.meta.env.VITE_API_URL}/projects`
+
+      const response = await fetch(url, {
+        method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title,
@@ -66,7 +100,7 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
 
       // On error, retrieve the error message to display to the user
       if (!response.ok) {
-        let message = "Failed to update project." // Default
+        let message = isEditMode ? "Failed to update project." : "Failed to create project."
 
         if (response.status >= 500) {
           message = "Server error. Please try again later."
@@ -80,8 +114,9 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
         throw new Error(message)
       }
 
-      const updatedProject = await response.json()
-      onProjectEdited(updatedProject)
+      const savedProject = await response.json()
+
+      onProjectSaved(savedProject)
       onClose()
     } catch (error) {
       setSubmitError(error.message)
@@ -90,32 +125,34 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
     }
   }
 
+  // Ensure required fields are filled before allowing form submission
   const isValid = form.title.trim() !== "" && form.dueDate !== ""
 
-  // Ensure the min date for the due date input is in local time to prevent timezone issues
-  const localCreatedAt = new Date(project.createdAt)
-  localCreatedAt.setHours(0, 0, 0, 0) // local midnight
-  const minDateStr = localCreatedAt.toISOString().split('T')[0]
+  // Keep due date min consistent with mode: today for create, project createdAt for edit
+  const isEditMode = mode === "edit"
+  const minDateStr = isEditMode ? getLocalDateString(project.createdAt) : getLocalDateString()
 
-  // Don't render the modal if there is no project data
-  if (!project) return null
+  // Change form id based on mode 
+  const formId = `${mode}-project-form`
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-40"/>
+      <div className="fixed inset-0 bg-black/50 z-40" />
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl w-full max-w-lg">
-
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-base font-semibold text-gray-700">Edit Project</h2>
+            <h2 className="text-base font-semibold text-gray-700">
+              {isEditMode ? "Edit Project" : "New Project"}
+            </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X size={24} />
             </button>
           </div>
 
           <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-            <form id="edit-project-form" className="space-y-5" onSubmit={handleFormSubmit}>
+            <form id={formId} className="space-y-5" onSubmit={handleFormSubmit}>
               <div className="space-y-4">
+                {/** Title */}
                 <div className="space-y-1.5">
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                     Title <span className="text-red-500">*</span>
@@ -130,13 +167,11 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                     onChange={handleInputChange}
                     placeholder="Enter project title"
                     className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200
-                      ${submitError?.toLowerCase().includes("title")
-                        ? "border-red-500"
-                        : "border-gray-300"
-                      }`}
+                      ${submitError?.toLowerCase().includes("title") ? "border-red-500" : "border-gray-300"}`}
                   />
                 </div>
 
+                {/** Due Date, Status fields */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">
@@ -168,15 +203,18 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                     >
                       <option value="NOT_STARTED">Not Started</option>
                       <option value="IN_PROGRESS">In Progress</option>
-                      <option value="COMPLETED">Completed</option>
+                      {isEditMode && <option value="COMPLETED">Completed</option>}
                     </select>
                   </div>
                 </div>
               </div>
 
+              {/** Optional fields: Category, Description, Difficulty, Estimated Hours */}
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
                   <input
                     id="category"
                     name="category"
@@ -190,7 +228,9 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
                   <textarea
                     id="description"
                     name="description"
@@ -218,7 +258,9 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
                       onChange={handleInputChange}
                       className="flex-1 accent-indigo-600"
                     />
-                    <span className="text-sm font-medium text-gray-700 w-6 text-center">{form.difficulty}</span>
+                    <span className="text-sm font-medium text-gray-700 w-6 text-center">
+                      {form.difficulty}
+                    </span>
                   </div>
                 </div>
 
@@ -241,33 +283,41 @@ function EditProjectModal({ onClose, onProjectEdited, project }) {
             </form>
           </div>
 
+          {/** Display an error message if submission fails */}
           {submitError && (
-            <p className="text-sm text-red-500 px-6 py-2 border-t border-red-100">
-              {submitError}
-            </p>
+            <p className="text-sm text-red-500 px-6 py-2 border-t border-red-100">{submitError}</p>
           )}
 
+          {/** Bottom section of form: Action buttons */}
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-            <button onClick={onClose} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors duration-200">
+            <button
+              onClick={onClose}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors duration-200"
+            >
               Cancel
             </button>
-            <button 
-              form="edit-project-form" type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200"
+            <button
+              form={formId}
+              type="submit"
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200"
               disabled={!isValid}
             >
               {isLoading ? (
-                  <>
-                    <LoaderCircle className="animate-spin" size={16} />
-                    Editing...
-                  </>
-                ) : ("Save Changes"
+                <>
+                  <LoaderCircle className="animate-spin" size={16} />
+                  {isEditMode ? "Saving..." : "Creating..."}
+                </>
+              ) : isEditMode ? (
+                "Save Changes"
+              ) : (
+                "Create"
               )}
             </button>
           </div>
         </div>
       </div>
     </>
-
   )
 }
-export default EditProjectModal
+
+export default ProjectModal
