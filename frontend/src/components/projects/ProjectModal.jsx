@@ -12,6 +12,27 @@ const getDefaultForm = () => ({
   estimatedHours: "",
 })
 
+// Normalize form values for accurate comparison with original project data
+const normalizeFormForComparison = (formData) => ({
+  ...formData,
+  difficulty: Number(formData.difficulty),
+  estimatedHours:
+    formData.estimatedHours === "" || formData.estimatedHours === null
+      ? ""
+      : Number(formData.estimatedHours),
+})
+
+// Build edit-form values from a project object
+const getFormFromProject = (project) => ({
+  title: project.title || "",
+  dueDate: project.dueDate || "",
+  status: project.status || "NOT_STARTED",
+  category: project.category || "",
+  description: project.description || "",
+  difficulty: project.difficulty ?? 5,
+  estimatedHours: project.estimatedHours ?? "",
+})
+
 function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState(null)
@@ -25,16 +46,9 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
       // Don't set the form for edit mode if there is no project data
       if (!project) return
 
-      setForm({
-        title: project.title || "",
-        dueDate: project.dueDate || "",
-        status: project.status || "NOT_STARTED",
-        category: project.category || "",
-        description: project.description || "",
-        difficulty: project.difficulty ?? 5,
-        estimatedHours: project.estimatedHours ?? "",
-      })
-      return // Exit early to avoid resetting form to default values after setting project data
+      // Pre-fill the form with project data
+      setForm(getFormFromProject(project))
+      return
     }
 
     // Set the form to default values in create mode
@@ -131,6 +145,15 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
   // Keep due date min consistent with mode: today for create, project createdAt for edit
   const isEditMode = mode === "edit"
   const minDateStr = isEditMode ? getLocalDateString(project.createdAt) : getLocalDateString()
+
+  // In edit mode, only enable submission after at least one field differs from the original project values
+  const hasFormChanges = isEditMode
+    ? JSON.stringify(normalizeFormForComparison(form)) !==
+      JSON.stringify(normalizeFormForComparison(getFormFromProject(project)))
+    : true
+
+  // Disable submit button if required values are missing, or if edit mode has no form changes
+  const isSubmitDisabled = !isValid || (isEditMode && !hasFormChanges)
 
   // Change form id based on mode 
   const formId = `${mode}-project-form`
@@ -300,7 +323,7 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
               form={formId}
               type="submit"
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200"
-              disabled={!isValid}
+              disabled={isSubmitDisabled}
             >
               {isLoading ? (
                 <>
