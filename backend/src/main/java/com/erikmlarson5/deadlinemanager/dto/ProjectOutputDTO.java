@@ -20,6 +20,7 @@ public class ProjectOutputDTO {
     private float priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime completedAt;
     private List<TaskOutputDTO> tasks;
 
     public Long getProjectId() { return projectId; }
@@ -51,9 +52,11 @@ public class ProjectOutputDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCompletedAt() { return completedAt; }
 
 
     public List<TaskOutputDTO> getTasks() { return tasks; }

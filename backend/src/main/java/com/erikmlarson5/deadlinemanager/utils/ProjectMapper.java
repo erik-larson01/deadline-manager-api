@@ -49,6 +49,7 @@ public class ProjectMapper {
         dto.setPriority(project.getPriority());
         dto.setCreatedAt(project.getCreatedAt());
         dto.setUpdatedAt(project.getUpdatedAt());
+        dto.setCompletedAt(project.getCompletedAt());
 
         if (project.getTasks() != null) {
             List<TaskOutputDTO> taskDtos = new ArrayList<>();

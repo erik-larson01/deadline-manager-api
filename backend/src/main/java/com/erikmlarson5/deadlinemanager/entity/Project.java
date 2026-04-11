@@ -41,8 +41,14 @@ public class Project {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Transient
+    private Status previousStatus;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
@@ -146,6 +152,14 @@ public class Project {
         return updatedAt;
     }
 
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
     public List<Task> getTasks() {
         return tasks;
     }
@@ -167,11 +181,29 @@ public class Project {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (status == Status.COMPLETED) {
+            completedAt = LocalDateTime.now();
+        }
+    }
+
+    @PostLoad
+    protected void onLoad() {
+        previousStatus = status;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (status == Status.COMPLETED && previousStatus != Status.COMPLETED) {
+            completedAt = LocalDateTime.now();
+        }
+
+        if (status != Status.COMPLETED) {
+            completedAt = null;
+        }
+
+        previousStatus = status;
     }
 
     @Override
@@ -188,6 +220,7 @@ public class Project {
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", completedAt=" + completedAt +
                 '}';
     }
 }
