@@ -4,7 +4,8 @@ import com.erikmlarson5.deadlinemanager.utils.Status;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,13 +37,13 @@ public class Project {
     private Float estimatedHours;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    private OffsetDateTime completedAt;
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -128,15 +129,15 @@ public class Project {
         this.priority = priority;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -148,15 +149,15 @@ public class Project {
         return estimatedHours;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public LocalDateTime getCompletedAt() {
+    public OffsetDateTime getCompletedAt() {
         return completedAt;
     }
 
-    public void setCompletedAt(LocalDateTime completedAt) {
+    public void setCompletedAt(OffsetDateTime completedAt) {
         this.completedAt = completedAt;
     }
 
@@ -180,9 +181,9 @@ public class Project {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = OffsetDateTime.now(ZoneOffset.UTC);
         if (status == Status.COMPLETED) {
-            completedAt = LocalDateTime.now();
+            completedAt = OffsetDateTime.now(ZoneOffset.UTC);
         }
     }
 
@@ -193,10 +194,10 @@ public class Project {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
 
         if (status == Status.COMPLETED && previousStatus != Status.COMPLETED) {
-            completedAt = LocalDateTime.now();
+            completedAt = OffsetDateTime.now(ZoneOffset.UTC);
         }
 
         if (status != Status.COMPLETED) {

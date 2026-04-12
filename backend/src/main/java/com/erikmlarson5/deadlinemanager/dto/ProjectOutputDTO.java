@@ -1,7 +1,7 @@
 package com.erikmlarson5.deadlinemanager.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -18,9 +18,9 @@ public class ProjectOutputDTO {
     private Integer difficulty;
     private String status;
     private float priority;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime completedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
+    private OffsetDateTime completedAt;
     private List<TaskOutputDTO> tasks;
 
     public Long getProjectId() { return projectId; }
@@ -50,13 +50,13 @@ public class ProjectOutputDTO {
     public float getPriority() { return priority; }
     public void setPriority(float priority) { this.priority = priority; }
 
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setCompletedAt(OffsetDateTime completedAt) { this.completedAt = completedAt; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public LocalDateTime getCompletedAt() { return completedAt; }
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public OffsetDateTime getUpdatedAt() { return updatedAt; }
+    public OffsetDateTime getCompletedAt() { return completedAt; }
 
 
     public List<TaskOutputDTO> getTasks() { return tasks; }
