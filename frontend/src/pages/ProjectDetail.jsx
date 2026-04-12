@@ -4,6 +4,7 @@ import { ArrowLeft, Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import ProjectModal from '../components/projects/ProjectModal'
 import DeleteProjectModal from '../components/projects/DeleteProjectModal'
 import ProjectsContext from '../contexts/ProjectsContext'
+import ProgressBar from '../components/projects/ProgressBar'
 
 function ProjectDetail() {
   // Fixed preview length for description truncation
@@ -29,6 +30,7 @@ function ProjectDetail() {
   
   // State to track description expansion/truncation
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+  const [shouldAnimateDetailProgress, setShouldAnimateDetailProgress] = useState(false)
 
   // On every id change, fetch that specific projects's data
   useEffect(() => {
@@ -56,6 +58,22 @@ function ProjectDetail() {
 
     fetchProjectById()
   }, [id])
+
+  // Trigger a small delayed progress bar animation after project data has mounted.
+  useEffect(() => {
+    if (!project) {
+      setShouldAnimateDetailProgress(false)
+      return
+    }
+
+    setShouldAnimateDetailProgress(false)
+
+    const animationFrameId = requestAnimationFrame(() => {
+      setShouldAnimateDetailProgress(true)
+    })
+
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [project?.projectId])
 
   // Formats the API dueDate string to readable text
   const formatDueDateLabel = (dateString) => {
@@ -325,6 +343,21 @@ function ProjectDetail() {
     : dueDateInfo.label
   const completedDateLabel = formatCompletedDateLabel(project.completedAt)
 
+  const tasks = Array.isArray(project.tasks) ? project.tasks : []
+  const totalTasks = tasks.length
+  const completedTasks = tasks.filter((task) => task?.status === 'COMPLETED').length
+  
+  const estimatedHoursRemaining = tasks.reduce((sum, task) => {
+    const taskHours = Number(task?.estimatedHours)
+    const isIncomplete = task?.status !== 'COMPLETED'
+
+    if (!isIncomplete || Number.isNaN(taskHours) || taskHours < 0) {
+      return sum
+    }
+
+    return sum + taskHours
+  }, 0)
+
   return (
     <>
       <section className="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -403,6 +436,17 @@ function ProjectDetail() {
             )}
           </div>
           {statusUpdateError && <p className="mt-2 text-xs text-rose-600">{statusUpdateError}</p>}
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <ProgressBar
+            completed={completedTasks}
+            total={totalTasks}
+            shouldAnimate={shouldAnimateDetailProgress}
+            detailed={true}
+            estimatedHoursRemaining={estimatedHoursRemaining}
+            difficulty={project.difficulty}
+          />
         </div>
 
         {/** Description section with expand/collapse logic */}

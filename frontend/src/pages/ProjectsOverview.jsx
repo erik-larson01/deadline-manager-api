@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { Plus } from "lucide-react"
 import ProjectModal from "../components/projects/ProjectModal"
 import ProjectsContext from "../contexts/ProjectsContext"
@@ -37,6 +37,15 @@ function ProjectsOverview() {
 
   // State to track whether completed projects are shown or hidden
   const [showCompleted, setShowCompleted] = useState(false)
+
+  // Track which project cards should animate their progress bars
+  const [animatedProjectIds, setAnimatedProjectIds] = useState(() => new Set())
+
+  // Ref to track whether the initial progress animation has been triggered
+  const hasInitialProgressStarted = useRef(false)
+
+  // Ref to track previous project IDs for comparison to determine which projects are newly added
+  const previousProjectIdsRef = useRef([])
 
   // State to track which project is selected for editing or deleting
   const [selectedProject, setSelectedProject] = useState(null)
@@ -150,6 +159,49 @@ function ProjectsOverview() {
   const activeProjectsEmptyMessage = !isSearching && allProjectsCompleted
     ? "No active projects right now."
     : "No active projects match your filters. All matching projects are completed."
+
+  // Sync initial progress animation and animate only newly added projects after first load
+  useEffect(() => {
+    // Get current project IDs to compare against previous project IDs for determining which projects should animate
+    const currentProjectIds = projects
+      .map((project) => project.projectId)
+      .filter((projectId) => projectId !== undefined && projectId !== null)
+
+    const previousProjectIds = previousProjectIdsRef.current
+    const previousProjectIdSet = new Set(previousProjectIds)
+
+    // Determine which projects are newly added since the last render
+    const newlyAddedIds = currentProjectIds.filter((projectId) => !previousProjectIdSet.has(projectId))
+
+    // On initial load, animate all project progress bars at the same time
+    if (!hasInitialProgressStarted.current && currentProjectIds.length > 0) {
+      // Add all projects to animation set to be animated together
+      const animationFrameId = requestAnimationFrame(() => {
+        setAnimatedProjectIds(new Set(currentProjectIds))
+        hasInitialProgressStarted.current = true
+      })
+
+      // Update previous project IDs to current project IDs for the next comparison
+      previousProjectIdsRef.current = currentProjectIds
+      
+      // Cleanup function to cancel the scheduled animation if the component unmounts before it runs
+      return () => cancelAnimationFrame(animationFrameId)
+    }
+
+    // For later additions only newly added project IDs animate
+    if (hasInitialProgressStarted.current && newlyAddedIds.length > 0) {
+      setAnimatedProjectIds((prevAnimatedIds) => {
+        const nextAnimatedIds = new Set(prevAnimatedIds)
+        for (const projectId of newlyAddedIds) {
+          nextAnimatedIds.add(projectId)
+        }
+        return nextAnimatedIds
+      })
+    }
+
+    // Update previous project IDs to current project IDs for the next comparison
+    previousProjectIdsRef.current = currentProjectIds
+  }, [projects])
 
   return (
     <div className="p-6">
@@ -269,6 +321,7 @@ function ProjectsOverview() {
                     isCompleted={false}
                     onEdit={handleOpenEditModal}
                     onDelete={handleOpenDeleteModal}
+                    shouldAnimateProgress={animatedProjectIds.has(project.projectId)}
                   />
                 ))}
               </div>
@@ -287,6 +340,7 @@ function ProjectsOverview() {
                     isCompleted={true}
                     onEdit={handleOpenEditModal}
                     onDelete={handleOpenDeleteModal}
+                    shouldAnimateProgress={animatedProjectIds.has(project.projectId)}
                   />
                 ))}
               </div>

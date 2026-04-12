@@ -1,7 +1,8 @@
 import { Pencil, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import ProgressBar from "./ProgressBar"
 
-function ProjectCard({project, isCompleted, onEdit, onDelete}) {
+function ProjectCard({project, isCompleted, onEdit, onDelete, shouldAnimateProgress = false}) {
   // Formats the API dueDate string to readable text
   const formatDueDateLabel = (dateString) => {
     if (!dateString) return "No due date"
@@ -139,6 +140,11 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
     ? completedDateLabel
     : formatDueDateLabel(project.dueDate)
 
+  // Get task completion info for progress bar
+  const tasks = Array.isArray(project.tasks) ? project.tasks : []
+  const totalTasks = tasks.length
+  const completedTasks = tasks.filter((task) => task?.status === "COMPLETED").length
+
   return (
     <div
       className={`group relative rounded-2xl border p-5 shadow-sm transition-all duration-200 ${
@@ -172,17 +178,13 @@ function ProjectCard({project, isCompleted, onEdit, onDelete}) {
           </span>
         </div>
 
-        {/** Task Completion Box with Priority and Days Left */}
+        {/** Task Completion Box with Progress Bar, Priority and Days Left */}
         <div className={`mt-5 space-y-3 rounded-xl p-3 ${isCompleted ? "bg-slate-100/70" : "bg-gray-50"}`}>
-          <div>
-            <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-gray-600">
-              <span>Task Completion</span>
-              <span>0/0 tasks</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-gray-200">
-              <div className="h-full w-0 rounded-full bg-indigo-500" />
-            </div>
-          </div>
+          <ProgressBar
+            completed={completedTasks}
+            total={totalTasks}
+            shouldAnimate={shouldAnimateProgress}
+          />
 
           <div className="flex items-center justify-between gap-3">
             <span
