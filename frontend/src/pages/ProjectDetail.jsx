@@ -211,8 +211,28 @@ function ProjectDetail() {
     if (!project || nextStatus === project.status) {
       return
     }
+    // Update UI immediately before making the API call, rolling back if API call fails
 
+    // Get previous status and project to fall back in case of API failure
     const previousStatus = project.status
+    const previousProject = { ...project }
+
+    // If next status is completed, set completedAt to now for optimistic UI update
+    const optimisticCompletedAt = nextStatus === 'COMPLETED'
+      ? new Date().toISOString()
+      : null
+
+    // Update project status in UI
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject
+
+      return {
+        ...prevProject,
+        status: nextStatus,
+        completedAt: optimisticCompletedAt,
+      }
+    })
+
     setIsStatusUpdating(true)
 
     try {
@@ -248,7 +268,9 @@ function ProjectDetail() {
       const updatedProject = await response.json()
       handleProjectSaved(updatedProject)
     } catch (updateError) {
+      // Roll back to previous status and project data on error, and show error message
       setStatusValue(previousStatus)
+      setProject(previousProject)
       setStatusUpdateError(updateError.message)
     } finally {
       setIsStatusUpdating(false)
@@ -356,13 +378,14 @@ function ProjectDetail() {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current"
               />
             </div>
-            
+            {/** Only show category if it exists*/}
             {project.category?.trim() && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
                 {project.category}
               </span>
             )}
 
+            {/** If status is completed, show completed date only, otherwise show priority and due date */}
             {statusValue === 'COMPLETED' ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
                 <Check size={12} />
