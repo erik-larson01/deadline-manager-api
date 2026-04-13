@@ -180,22 +180,24 @@ function ProjectCard({project, isCompleted, onEdit, onDelete, shouldAnimateProgr
 
         {/** Task Completion Box with Progress Bar, Priority and Days Left */}
         <div className={`mt-5 space-y-3 rounded-xl p-3 ${isCompleted ? "bg-slate-100/70" : "bg-gray-50"}`}>
-          <ProgressBar
-            completed={completedTasks}
-            total={totalTasks}
-            shouldAnimate={shouldAnimateProgress}
-          />
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+              <span>Task Completion</span>
+              <span>{completedTasks}/{totalTasks} tasks</span>
+            </div>
+            <ProgressBar
+              completed={completedTasks}
+              total={totalTasks}
+              shouldAnimate={shouldAnimateProgress}
+            />
+          </div>
 
           <div className="flex items-center justify-between gap-3">
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${priorityInfo.style}`}
-            >
+            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${priorityInfo.style}`}>
               {priorityInfo.label}
             </span>
 
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isCompleted ? "bg-emerald-100 text-emerald-700" : dueDateInfo.style}`}
-            >
+            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isCompleted ? "bg-emerald-100 text-emerald-700" : dueDateInfo.style}`}>
               {isCompleted ? completedDateLabel : dueDateInfo.label}
             </span>
           </div>

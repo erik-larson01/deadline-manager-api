@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import ProjectModal from '../components/projects/ProjectModal'
 import DeleteProjectModal from '../components/projects/DeleteProjectModal'
 import ProjectsContext from '../contexts/ProjectsContext'
@@ -100,7 +100,6 @@ function ProjectDetail() {
 
   // Creates dynamic coloring for "due in X days" based on difference from today to due date (Red, Yellow, Green)
   const getDueDateStyleInfo = (dateString) => {
-    // Handles backend error
     if (!dateString) {
       return {
         label: 'No due date',
@@ -149,7 +148,6 @@ function ProjectDetail() {
     // Otherwise use the numeric priority to determine the badge color
     const numericPriority = Number(priority)
 
-    // Handles backend error
     if (Number.isNaN(numericPriority)) {
       return {
         label: 'No Priority',
@@ -229,13 +227,12 @@ function ProjectDetail() {
     if (!project || nextStatus === project.status) {
       return
     }
-    // Update UI immediately before making the API call, rolling back if API call fails
 
     // Get previous status and project to fall back in case of API failure
     const previousStatus = project.status
     const previousProject = { ...project }
 
-    // If next status is completed, set completedAt to now for optimistic UI update
+    // If next status is completed, set completedAt to now to be updated immediately
     const optimisticCompletedAt = nextStatus === 'COMPLETED'
       ? new Date().toISOString()
       : null
@@ -298,7 +295,7 @@ function ProjectDetail() {
   // Render a pulsating card on project load
   if (isLoading) {
     return (
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <section className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="h-6 w-48 animate-pulse rounded bg-gray-200" />
         <div className="mt-4 h-4 w-2/3 animate-pulse rounded bg-gray-100" />
         <div className="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200" />
@@ -309,7 +306,7 @@ function ProjectDetail() {
   // Render a red error message if there was a loading issue
   if (error) {
     return (
-      <section className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-rose-800 shadow-sm">
+      <section className="w-full rounded-xl border border-rose-200 bg-rose-50 p-5 text-rose-800 shadow-sm sm:p-6">
         <h1 className="text-lg font-semibold">Unable to load project</h1>
         <p className="mt-2 text-sm">{error}</p>
       </section>
@@ -319,7 +316,7 @@ function ProjectDetail() {
   // Fallback: if there is no project data render a message
   if (!project) {
     return (
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <section className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <h1 className="text-lg font-semibold text-gray-900">Project not found</h1>
       </section>
     )
@@ -358,11 +355,18 @@ function ProjectDetail() {
     return sum + taskHours
   }, 0)
 
+  const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
+
+  // Format estimated hours remaining to show no decimal if it's a whole number, and 1 decimal if it has a fraction, while also handling invalid numbers
+  const formattedEstimatedHoursRemaining = Number.isInteger(estimatedHoursRemaining)
+    ? estimatedHoursRemaining.toString()
+    : estimatedHoursRemaining.toFixed(1)
+
   return (
     <>
-      <section className="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <section className="w-full space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         {/** Top row with Back link and Edit/Delete buttons */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <Link
             to="/projects"
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:text-indigo-600"
@@ -411,6 +415,7 @@ function ProjectDetail() {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current"
               />
             </div>
+
             {/** Only show category if it exists*/}
             {project.category?.trim() && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
@@ -438,19 +443,8 @@ function ProjectDetail() {
           {statusUpdateError && <p className="mt-2 text-xs text-rose-600">{statusUpdateError}</p>}
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <ProgressBar
-            completed={completedTasks}
-            total={totalTasks}
-            shouldAnimate={shouldAnimateDetailProgress}
-            detailed={true}
-            estimatedHoursRemaining={estimatedHoursRemaining}
-            difficulty={project.difficulty}
-          />
-        </div>
-
         {/** Description section with expand/collapse logic */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Description</p>
             {shouldTruncateDescription && (
@@ -464,9 +458,46 @@ function ProjectDetail() {
             )}
           </div>
 
-          <p className="text-sm leading-6 text-gray-700">
+          <p className="max-w-3xl text-sm leading-6 text-gray-700">
             {displayedDescription || 'No description has been added for this project yet.'}
           </p>
+        </div>
+
+        {/** Task completion section with progress bar and task summary info */}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Task Progress</p>
+
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:gap-7">
+              <p className="shrink-0 text-sm font-semibold text-gray-800">Tasks ({totalTasks})</p>
+
+              <div className="w-36 shrink-0 sm:w-52 lg:w-72 xl:w-lg">
+                <ProgressBar
+                  completed={completedTasks}
+                  total={totalTasks}
+                  shouldAnimate={shouldAnimateDetailProgress}
+                  thick={true}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 lg:shrink-0">
+                <span>{completedTasks}/{totalTasks}</span>
+                <span className="text-gray-500">&middot;</span>
+                <span>{completionPercentage}%</span>
+                <span className="text-gray-500">&middot;</span>
+                <span>{formattedEstimatedHoursRemaining}h left</span>
+              </div>
+            </div>
+
+            {/** Add Task button */}
+            <button
+              type="button"
+              className="self-start flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700"
+            >
+              <Plus size={16} />
+              Add Task
+            </button>
+          </div>
         </div>
       </section>
 
