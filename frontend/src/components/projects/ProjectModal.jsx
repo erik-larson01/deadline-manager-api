@@ -43,7 +43,6 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
   // On mount, Load selected project data in edit mode, or reset to default form in create mode
   useEffect(() => {
     if (mode === "edit") {
-      // Don't set the form for edit mode if there is no project data
       if (!project) return
 
       // Pre-fill the form with project data
@@ -55,16 +54,13 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
     setForm(getDefaultForm())
   }, [mode, project])
 
-  // Don't render the modal if in edit mode and no project is selected (safeguard)
   if (mode === "edit" && !project) return null
 
   // Ensure date inputs receive YYYY-MM-DD in local time to avoid timezone shift issues
   const getLocalDateString = (dateInput = new Date()) => {
-    // Create a date object and set time to midnight to avoid timezone shifts causing the date to display as the day before
     const date = new Date(dateInput)
     date.setHours(0, 0, 0, 0)
 
-    // Build a YYYY-MM-DD string with leading zeros for month and day
     const year = date.getFullYear()
     const month = `${date.getMonth() + 1}`.padStart(2, "0")
     const day = `${date.getDate()}`.padStart(2, "0")
@@ -155,7 +151,6 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
   // Disable submit button if required values are missing, or if edit mode has no form changes
   const isSubmitDisabled = !isValid || (isEditMode && !hasFormChanges)
 
-  // Change form id based on mode 
   const formId = `${mode}-project-form`
 
   return (
