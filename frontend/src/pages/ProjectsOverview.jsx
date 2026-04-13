@@ -26,25 +26,17 @@ function ProjectsOverview() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  // State to track which sort option is selected in the dropdown
   const [sortBy, setSortBy] = useState(SORT_OPTIONS.CREATED_AT_DESC)
-
-  // State to track title search input value
   const [titleSearch, setTitleSearch] = useState("")
-
-  // State to track selected category in category dropdown
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES_OPTION)
 
   // State to track whether completed projects are shown or hidden
   const [showCompleted, setShowCompleted] = useState(false)
 
-  // Track which project cards should animate their progress bars
+  // State to track which projects should have their progress bars animated. 
+  // This is used to trigger the animation on newly added projects and on initial load for all projects.
   const [animatedProjectIds, setAnimatedProjectIds] = useState(() => new Set())
-
-  // Ref to track whether the initial progress animation has been triggered
   const hasInitialProgressStarted = useRef(false)
-
-  // Ref to track previous project IDs for comparison to determine which projects are newly added
   const previousProjectIdsRef = useRef([])
 
   // State to track which project is selected for editing or deleting
@@ -59,7 +51,6 @@ function ProjectsOverview() {
   const handleUpdatedProject = (updatedProject) => {
     setProjects((prevProjects) =>
       prevProjects.map((project) =>
-        // Update only the project that has a matching projectId with the current selected project
         project.projectId === updatedProject.projectId ? updatedProject : project
       )
     )
@@ -147,7 +138,6 @@ function ProjectsOverview() {
   const activeProjects = sortedProjects.filter((project) => project.status !== "COMPLETED")
   const completedProjects = sortedProjects.filter((project) => project.status === "COMPLETED")
 
-  // Counts shown in the top header should represent all projects, not the current filtered subset
   const allActiveProjectsCount = projects.filter((project) => project.status !== "COMPLETED").length
   const allCompletedProjectsCount = projects.filter((project) => project.status === "COMPLETED").length
 
@@ -175,6 +165,7 @@ function ProjectsOverview() {
 
     // On initial load, animate all project progress bars at the same time
     if (!hasInitialProgressStarted.current && currentProjectIds.length > 0) {
+      
       // Add all projects to animation set to be animated together
       const animationFrameId = requestAnimationFrame(() => {
         setAnimatedProjectIds(new Set(currentProjectIds))
