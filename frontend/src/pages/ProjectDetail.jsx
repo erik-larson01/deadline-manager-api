@@ -30,7 +30,6 @@ function ProjectDetail() {
   
   // State to track description expansion/truncation
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
-  const [shouldAnimateDetailProgress, setShouldAnimateDetailProgress] = useState(false)
 
   // On every id change, fetch that specific projects's data
   useEffect(() => {
@@ -58,22 +57,6 @@ function ProjectDetail() {
 
     fetchProjectById()
   }, [id])
-
-  // Trigger a small delayed progress bar animation after project data has mounted.
-  useEffect(() => {
-    if (!project) {
-      setShouldAnimateDetailProgress(false)
-      return
-    }
-
-    setShouldAnimateDetailProgress(false)
-
-    const animationFrameId = requestAnimationFrame(() => {
-      setShouldAnimateDetailProgress(true)
-    })
-
-    return () => cancelAnimationFrame(animationFrameId)
-  }, [project?.projectId])
 
   // Formats the API dueDate string to readable text
   const formatDueDateLabel = (dateString) => {
@@ -292,6 +275,23 @@ function ProjectDetail() {
     }
   }
 
+  const tasks = Array.isArray(project?.tasks) ? project.tasks : []
+  const totalTasks = tasks.length
+  const completedTasks = tasks.filter((task) => task?.status === 'COMPLETED').length
+
+  const estimatedHoursRemaining = tasks.reduce((sum, task) => {
+    const taskHours = Number(task?.estimatedHours)
+    const isIncomplete = task?.status !== 'COMPLETED'
+
+    if (!isIncomplete || Number.isNaN(taskHours) || taskHours < 0) {
+      return sum
+    }
+
+    return sum + taskHours
+  }, 0)
+
+  const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
+
   // Render a pulsating card on project load
   if (isLoading) {
     return (
@@ -339,23 +339,6 @@ function ProjectDetail() {
     ? `${formatDueDateLabel(project.dueDate)} • ${dueDateInfo.label}`
     : dueDateInfo.label
   const completedDateLabel = formatCompletedDateLabel(project.completedAt)
-
-  const tasks = Array.isArray(project.tasks) ? project.tasks : []
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter((task) => task?.status === 'COMPLETED').length
-  
-  const estimatedHoursRemaining = tasks.reduce((sum, task) => {
-    const taskHours = Number(task?.estimatedHours)
-    const isIncomplete = task?.status !== 'COMPLETED'
-
-    if (!isIncomplete || Number.isNaN(taskHours) || taskHours < 0) {
-      return sum
-    }
-
-    return sum + taskHours
-  }, 0)
-
-  const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
 
   // Format estimated hours remaining to show no decimal if it's a whole number, and 1 decimal if it has a fraction, while also handling invalid numbers
   const formattedEstimatedHoursRemaining = Number.isInteger(estimatedHoursRemaining)
@@ -475,7 +458,6 @@ function ProjectDetail() {
                 <ProgressBar
                   completed={completedTasks}
                   total={totalTasks}
-                  shouldAnimate={shouldAnimateDetailProgress}
                   thick={true}
                 />
               </div>

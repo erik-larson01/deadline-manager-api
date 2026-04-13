@@ -1,27 +1,38 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
-function ProgressBar({ completed, total, shouldAnimate = false, thick = false }) {
-
+function ProgressBar({ completed, total, thick = false }) {
   const percentage = total === 0 ? 0 : Math.round((completed / total) * 100)
 
-  // Display percentage state to control animation based on whether animation should occur
-  const [displayPercentage, setDisplayPercentage] = useState(shouldAnimate ? 0 : percentage)
+  const [displayPercentage, setDisplayPercentage] = useState(0)
 
-  // On mount, if shouldAnimate is true, animate the progress bar from 0 to the correct percentage.
+  // Ref to track if the progress bar has already animated from 0 to prevent animation restarts on task completion
+  const hasAnimatedFromZeroRef = useRef(false)
+
+  // On mount and whenever percentage changes, animate the progress bar from 0 to the new percentage
   useEffect(() => {
-    if (!shouldAnimate) {
+    // If the progress bar has already animated from 0, jump directly to the new percentage without animating again
+    if (hasAnimatedFromZeroRef.current) {
+      setDisplayPercentage(percentage)
       return
     }
 
-    setDisplayPercentage(percentage)
-  }, [percentage, shouldAnimate]) // Update animation if percentage changes
+    setDisplayPercentage(0)
+
+    // Use requestAnimationFrame for a smooth animation from 0 to the target percentage
+    const animationFrameId = requestAnimationFrame(() => {
+      setDisplayPercentage(percentage)
+      hasAnimatedFromZeroRef.current = true
+    })
+
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [percentage])
 
   const trackHeightClass = thick ? "h-3" : "h-2"
 
   return (
-    <div className={`${trackHeightClass} w-full rounded-full bg-gray-100`}>
+    <div className={`${trackHeightClass} w-full rounded-full bg-gray-200`}>
       <div
-        className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+        className="h-full rounded-full bg-indigo-500 transition-all duration-2000"
         style={{ width: `${displayPercentage}%` }}
       />
     </div>

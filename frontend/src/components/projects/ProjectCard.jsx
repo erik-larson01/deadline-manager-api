@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom"
 import ProgressBar from "./ProgressBar"
 
-function ProjectCard({project, isCompleted, onEdit, onDelete, shouldAnimateProgress = false}) {
+function ProjectCard({project, isCompleted, onEdit, onDelete}) {
   // Formats the API dueDate string to readable text
   const formatDueDateLabel = (dateString) => {
     if (!dateString) return "No due date"
@@ -188,7 +188,6 @@ function ProjectCard({project, isCompleted, onEdit, onDelete, shouldAnimateProgr
             <ProgressBar
               completed={completedTasks}
               total={totalTasks}
-              shouldAnimate={shouldAnimateProgress}
             />
           </div>
 
