@@ -234,18 +234,9 @@ function ProjectDetail() {
     setIsStatusUpdating(true)
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${project.projectId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: project.title,
-          dueDate: project.dueDate,
-          status: nextStatus,
-          category: project.category || null,
-          description: project.description || null,
-          difficulty: project.difficulty,
-          estimatedHours: project.estimatedHours ?? null,
-        }),
+      // Make a PATCH request to the API to update the project's status
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${project.projectId}/status?newStatus=${nextStatus}`, {
+        method: 'PATCH' 
       })
 
       if (!response.ok) {
