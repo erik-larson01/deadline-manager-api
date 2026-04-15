@@ -570,7 +570,7 @@ function ProjectDetail() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{project.title}</h1>
           {/** Status pill and category */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="relative">
               <select
                 value={statusValue}
