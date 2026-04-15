@@ -12,7 +12,6 @@ public class TaskInputDTO {
     @NotBlank(message = "Title must not be blank")
     private String title;
 
-    @NotBlank(message = "Description must not be blank")
     private String description;
 
     @NotNull(message = "Due date is required")
