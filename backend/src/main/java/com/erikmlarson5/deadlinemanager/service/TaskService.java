@@ -172,7 +172,7 @@ public class TaskService {
         project.setPriority(newPriority);
         projectRepository.save(project);
 
-        Task updatedTask = taskRepository.save(existingTask);
+        Task updatedTask = taskRepository.saveAndFlush(existingTask);
         return TaskMapper.toOutputDto(updatedTask);
     }
 
@@ -192,7 +192,7 @@ public class TaskService {
         }
 
         task.setStatus(Status.valueOf(newStatus.toUpperCase()));
-        taskRepository.save(task);
+        taskRepository.saveAndFlush(task);
 
         return TaskMapper.toOutputDto(task);
     }
