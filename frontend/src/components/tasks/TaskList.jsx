@@ -145,24 +145,26 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 	})
 
 	const completedTasksList = sortedTasks.filter((task) => task.status === 'COMPLETED')
-
 	const todoTasksCount = safeTasks.filter((task) => task?.status === 'NOT_STARTED').length
 	const inProgressTasksCount = safeTasks.filter((task) => task?.status === 'IN_PROGRESS').length
+
 	const overdueTasksCount = safeTasks.filter((task) => {
 		const dueInfo = getTaskDueInfo(task)
 		return task?.status !== 'COMPLETED' && dueInfo.isOverdue
 	}).length
+
 	const dueTodayTasksCount = safeTasks.filter((task) => {
 		const dueInfo = getTaskDueInfo(task)
 		return task?.status !== 'COMPLETED' && dueInfo.isDueToday
 	}).length
+ 
+  // For non "All" filters, visible tasks are just the sorted tasks that match the filter
+	const visibleTasksForNonAllFilter = []
+  if (selectedFilter !== FILTER_OPTIONS.ALL) {
+    visibleTasksForNonAllFilter = showCompleted  ? sortedTasks : sortedTasks.filter(task => task.status !== 'COMPLETED');
+  }
 
-	const visibleTasksForNonAllFilter = selectedFilter === FILTER_OPTIONS.ALL
-		? []
-		: showCompleted
-			? sortedTasks
-			: sortedTasks.filter((task) => task.status !== 'COMPLETED')
-
+  // Checks if there are any tasks to show in the "All" filter
 	const hasVisibleTasksInAllGroups =
 		overdueTasks.length > 0 ||
 		dueTodayTasks.length > 0 ||
@@ -206,8 +208,9 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 				</button>
 			</div>
 
-			{/** Task Filter + Sort controls */}
+			{/** Task Filter and Sort controls */}
 			<div className="mt-4 flex flex-wrap items-center gap-3">
+        {/** Filter pills */}
 				<div className="flex flex-wrap items-center gap-2">
 					<button
 						type="button"
@@ -249,6 +252,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 					</button>
 				</div>
 
+        {/** Sort dropdown */}
 				<div className="ml-1 flex items-center gap-3">
 					<label htmlFor="task-sort" className="text-xs font-medium uppercase tracking-wide text-gray-500">
 						Sort By
@@ -296,6 +300,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 				) : (
 					selectedFilter === FILTER_OPTIONS.ALL ? (
 						<div className="space-y-5">
+              {/** Overdue tasks */}
 							<section>
 								<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-600">
 									Overdue ({overdueTasks.length})
@@ -321,6 +326,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 								)}
 							</section>
 
+              {/** Due today tasks */}
 							<section>
 								<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-600">Due Today ({dueTodayTasks.length})</h3>
 								{dueTodayTasks.length === 0 ? (
@@ -344,6 +350,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 								)}
 							</section>
 
+              {/** Upcoming tasks */}
 							<section>
 								<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">Upcoming ({upcomingTasks.length})</h3>
 								{upcomingTasks.length === 0 ? (
@@ -367,6 +374,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 								)}
 							</section>
 
+              {/** Completed tasks */}
 							{showCompleted && completedTasksList.length > 0 && (
 								<section>
 									<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-600">
