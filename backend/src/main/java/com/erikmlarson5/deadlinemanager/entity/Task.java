@@ -4,7 +4,8 @@ import com.erikmlarson5.deadlinemanager.utils.Status;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * The database entity of all Tasks and its included fields
@@ -30,13 +31,19 @@ public class Task {
     private Integer difficulty;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
+
+    @Column(name = "completed_at")
+    private OffsetDateTime completedAt;
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Transient
+    private Status previousStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
@@ -109,11 +116,11 @@ public class Task {
         this.project = project;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
 
@@ -122,12 +129,30 @@ public class Task {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+        if (status == Status.COMPLETED) {
+            completedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        }
+    }
+
+    @PostLoad
+    private void onLoad() {
+        previousStatus = this.status;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+
+        if (status == Status.COMPLETED && previousStatus != Status.COMPLETED) {
+            completedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        }
+
+        if (status != Status.COMPLETED) {
+            completedAt = null;
+        }
+
+        previousStatus = status;
     }
 
     @Override
@@ -141,6 +166,7 @@ public class Task {
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", completedAt=" + completedAt +
                 '}';
     }
 }

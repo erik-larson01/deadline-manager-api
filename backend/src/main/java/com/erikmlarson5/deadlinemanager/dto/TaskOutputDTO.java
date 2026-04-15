@@ -1,7 +1,7 @@
 package com.erikmlarson5.deadlinemanager.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * A DTO for Tasks which is returned to the user in a ResponseEntity
@@ -15,8 +15,9 @@ public class TaskOutputDTO {
     private float estimatedHours;
     private int difficulty;
     private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
+    private OffsetDateTime completedAt;
     private Long projectId;
 
     public Long getTaskId() { return taskId; }
@@ -40,12 +41,14 @@ public class TaskOutputDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
     public Long getProjectId() { return projectId; }
     public void setProjectId(Long projectId) { this.projectId = projectId; }
+
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setCompletedAt(OffsetDateTime completedAt) { this.completedAt = completedAt; }
+
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public OffsetDateTime getUpdatedAt() { return updatedAt; }
+    public OffsetDateTime getCompletedAt() { return completedAt; }
 }
