@@ -183,7 +183,7 @@ public class ProjectService {
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not " + "found!"));
 
         project.setStatus(Status.valueOf(newStatus.toUpperCase()));
-        projectRepository.save(project);
+        projectRepository.saveAndFlush(project);
 
         return ProjectMapper.toOutputDto(project);
     }
