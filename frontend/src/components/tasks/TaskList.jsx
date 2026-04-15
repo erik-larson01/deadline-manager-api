@@ -159,7 +159,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 	}).length
  
   // For non "All" filters, visible tasks are just the sorted tasks that match the filter
-	const visibleTasksForNonAllFilter = []
+	let visibleTasksForNonAllFilter = []
   if (selectedFilter !== FILTER_OPTIONS.ALL) {
     visibleTasksForNonAllFilter = showCompleted  ? sortedTasks : sortedTasks.filter(task => task.status !== 'COMPLETED');
   }
