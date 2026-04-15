@@ -124,6 +124,10 @@ public class Task {
         return updatedAt;
     }
 
+    public OffsetDateTime getCompletedAt() {
+        return completedAt;
+    }
+
     public Float getEstimatedHours() { return estimatedHours; }
     public void setEstimatedHours(Float estimatedHours) { this.estimatedHours = estimatedHours; }
 

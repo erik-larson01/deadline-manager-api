@@ -43,6 +43,7 @@ public class TaskMapper {
         dto.setStatus(task.getStatus().toString());
         dto.setCreatedAt(task.getCreatedAt());
         dto.setUpdatedAt(task.getUpdatedAt());
+        dto.setCompletedAt(task.getCompletedAt());
         dto.setProjectId(task.getProject().getProjectId());
         return dto;
     }
