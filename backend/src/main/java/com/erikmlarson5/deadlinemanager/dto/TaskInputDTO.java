@@ -15,7 +15,6 @@ public class TaskInputDTO {
     private String description;
 
     @NotNull(message = "Due date is required")
-    @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Estimated hours must be at least 0")
