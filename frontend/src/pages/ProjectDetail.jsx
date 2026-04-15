@@ -1,10 +1,12 @@
 import { useContext, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import ProjectModal from '../components/projects/ProjectModal'
 import DeleteProjectModal from '../components/projects/DeleteProjectModal'
 import ProjectsContext from '../contexts/ProjectsContext'
-import ProgressBar from '../components/projects/ProgressBar'
+import TaskModal from '../components/tasks/TaskModal'
+import TaskList from '../components/tasks/TaskList'
+import DeleteTaskModal from '../components/tasks/DeleteTaskModal'
 
 function ProjectDetail() {
   // Fixed preview length for description truncation
@@ -22,6 +24,16 @@ function ProjectDetail() {
   // States to track modal open/close
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false)
+
+  const [taskModalMode, setTaskModalMode] = useState('create')
+
+  // States to track selected task for editing or deleting, and any errors from those actions
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [taskPendingDelete, setTaskPendingDelete] = useState(null)
+  const [taskActionError, setTaskActionError] = useState(null)
+  const [taskStatusUpdatingIds, setTaskStatusUpdatingIds] = useState([])
 
   // State to track status value for instant UI update on change, and to handle async update states
   const [statusValue, setStatusValue] = useState('NOT_STARTED')
@@ -190,6 +202,20 @@ function ProjectDetail() {
     )
   }
 
+  // Syncs the updated list of tasks to the projects context after a task is created, updated, or deleted
+  const syncTasksToContext = (projectId, nextTasks) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((prevProject) =>
+        prevProject.projectId === projectId
+          ? {
+              ...prevProject,
+              tasks: nextTasks,
+            }
+          : prevProject
+      )
+    )
+  }
+
   // After a project is deleted, remove it from the projects context and navigate back to the projects list
   const handleProjectDeleted = (projectId) => {
     setProjects((prevProjects) =>
@@ -201,7 +227,7 @@ function ProjectDetail() {
   }
 
   // Handles status change with UI update first, API call second, and rolls back if the API call fails
-  const handleStatusChange = async (event) => {
+  const handleProjectStatusChange = async (event) => {
     const nextStatus = event.target.value
     setStatusValue(nextStatus)
     setStatusUpdateError(null)
@@ -266,22 +292,199 @@ function ProjectDetail() {
     }
   }
 
-  const tasks = Array.isArray(project?.tasks) ? project.tasks : []
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter((task) => task?.status === 'COMPLETED').length
+  // After a task is created, add it to project state and projects context
+  const onTaskCreated = (createdTask) => {
+    if (!project) return
 
-  const estimatedHoursRemaining = tasks.reduce((sum, task) => {
-    const taskHours = Number(task?.estimatedHours)
-    const isIncomplete = task?.status !== 'COMPLETED'
+    const nextTasks = [...tasks, createdTask]
 
-    if (!isIncomplete || Number.isNaN(taskHours) || taskHours < 0) {
-      return sum
+    // Update local state
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject
+
+      return {
+        ...prevProject,
+        tasks: nextTasks,
+      }
+    })
+
+    // Sync tasks to context outside setProject
+    syncTasksToContext(project.projectId, nextTasks)
+
+    setTaskActionError(null)
+  }
+
+  // After a task is updated, update it in project state and projects context
+  const onTaskUpdated = (updatedTask) => {
+    if (!project) return
+
+    const nextTasks = tasks.map((task) =>
+      task.taskId === updatedTask.taskId ? updatedTask : task
+    )
+
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject
+
+      return {
+        ...prevProject,
+        tasks: nextTasks,
+      }
+    })
+
+    syncTasksToContext(project.projectId, nextTasks)
+
+    setTaskActionError(null)
+  }
+
+  // Handles saving a task, either creating a new task or updating an existing one
+  const handleTaskSaved = (savedTask) => {
+    const taskExists = tasks.some((task) => task.taskId === savedTask.taskId)
+
+    if (taskExists) {
+      onTaskUpdated(savedTask)
+      return
     }
 
-    return sum + taskHours
-  }, 0)
+    onTaskCreated(savedTask)
+  }
 
-  const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
+  const openCreateTaskModal = () => {
+    setTaskModalMode('create')
+    setSelectedTask(null)
+    setTaskActionError(null)
+    setIsTaskModalOpen(true)
+  }
+
+  const openEditTaskModal = (task) => {
+    setTaskModalMode('edit')
+    setSelectedTask(task)
+    setTaskActionError(null)
+    setIsTaskModalOpen(true)
+  }
+
+  const closeTaskModal = () => {
+    setIsTaskModalOpen(false)
+    setSelectedTask(null)
+  }
+
+  const openDeleteTaskModal = (task) => {
+    setTaskPendingDelete(task)
+    setTaskActionError(null)
+    setIsDeleteTaskModalOpen(true)
+  }
+
+  const closeDeleteTaskModal = () => {
+    setIsDeleteTaskModalOpen(false)
+    setTaskPendingDelete(null)
+  }
+
+  // Handles task status change with optimistic UI update and rollback on API failure
+  const handleTaskStatusChange = async (task, nextStatus) => {
+    if (!project || !task || nextStatus === task.status) return
+
+    setTaskActionError(null)
+
+    const previousTasks = [...tasks]
+    const optimisticCompletedAt = nextStatus === 'COMPLETED' ? new Date().toISOString() : null
+    const nextTasks = tasks.map((prevTask) =>
+      prevTask.taskId === task.taskId
+        ? {
+            ...prevTask,
+            status: nextStatus,
+            completedAt: optimisticCompletedAt,
+          }
+        : prevTask
+    )
+
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject
+
+      return {
+        ...prevProject,
+        tasks: nextTasks,
+      }
+    })
+
+    syncTasksToContext(project.projectId, nextTasks)
+
+    // Add task to updating state to disable interactions
+    setTaskStatusUpdatingIds((prevIds) => [...prevIds, task.taskId])
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/projects/${project.projectId}/tasks/${task.taskId}/status?newStatus=${nextStatus}`,
+        {
+          method: 'PATCH',
+        }
+      )
+
+      if (!response.ok) {
+        let message = 'Failed to update task status.'
+
+        if (response.status >= 500) {
+          message = 'Server error. Please try again later.'
+        } else {
+          try {
+            const errorData = await response.json()
+            message = errorData.message || message
+          } catch {}
+        }
+
+        throw new Error(message)
+      }
+
+      const updatedTask = await response.json()
+      onTaskUpdated(updatedTask)
+    } catch (updateError) {
+      // Roll back to previous tasks on error, and show error message
+      setTaskActionError(updateError.message)
+
+      // Roll back local task state
+      setProject((prevProject) => {
+        if (!prevProject) return prevProject
+
+        return {
+          ...prevProject,
+          tasks: previousTasks,
+        }
+      })
+
+      // Roll back tasks context outside setProject
+      syncTasksToContext(project.projectId, previousTasks)
+    } finally {
+      // Remove task from updating state
+      setTaskStatusUpdatingIds((prevIds) => prevIds.filter((taskId) => taskId !== task.taskId))
+    }
+  }
+
+  // Toggles task completion status when the checkbox is clicked in the TaskRow component
+  const handleTaskToggleComplete = async (task) => {
+    const nextStatus = task.status === 'COMPLETED' ? 'NOT_STARTED' : 'COMPLETED'
+    await handleTaskStatusChange(task, nextStatus)
+  }
+
+  // Removes a task with a given taskId and updates state and context
+  const handleTaskDeleted = (taskId) => {
+    if (!project) return
+
+    const nextTasks = tasks.filter((task) => task.taskId !== taskId)
+
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject
+
+      return {
+        ...prevProject,
+        tasks: nextTasks,
+      }
+    })
+
+    syncTasksToContext(project.projectId, nextTasks)
+
+    setTaskActionError(null)
+    closeDeleteTaskModal()
+  }
+
+  const tasks = Array.isArray(project?.tasks) ? project.tasks : []
 
   // Render a pulsating card on project load
   if (isLoading) {
@@ -331,11 +534,6 @@ function ProjectDetail() {
     : dueDateInfo.label
   const completedDateLabel = formatCompletedDateLabel(project.completedAt)
 
-  // Format estimated hours remaining to show no decimal if it's a whole number, and 1 decimal if it has a fraction, while also handling invalid numbers
-  const formattedEstimatedHoursRemaining = Number.isInteger(estimatedHoursRemaining)
-    ? estimatedHoursRemaining.toString()
-    : estimatedHoursRemaining.toFixed(1)
-
   return (
     <>
       <section className="w-full space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
@@ -376,7 +574,7 @@ function ProjectDetail() {
             <div className="relative">
               <select
                 value={statusValue}
-                onChange={handleStatusChange}
+                onChange={handleProjectStatusChange}
                 disabled={isStatusUpdating}
                 className={`cursor-pointer appearance-none rounded-full px-2.5 py-1 pr-7 text-xs font-medium transition-all duration-200 focus:outline-none ${getStatusPillClasses(statusValue)} disabled:cursor-not-allowed disabled:opacity-70`}
               >
@@ -437,41 +635,18 @@ function ProjectDetail() {
           </p>
         </div>
 
-        {/** Task completion section with progress bar and task summary info */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Task Progress</p>
+        {/** Task list with filtering and Progress Bar */}
+        <TaskList
+          tasks={tasks}
+          taskStatusUpdatingIds={taskStatusUpdatingIds}
+          onAddTask={openCreateTaskModal}
+          onTaskToggleComplete={handleTaskToggleComplete}
+          onTaskStatusChange={handleTaskStatusChange}
+          onTaskEdit={openEditTaskModal}
+          onTaskDelete={openDeleteTaskModal}
+        />
 
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:gap-7">
-              <p className="shrink-0 text-sm font-semibold text-gray-800">Tasks ({totalTasks})</p>
-
-              <div className="w-36 shrink-0 sm:w-52 lg:w-72 xl:w-lg">
-                <ProgressBar
-                  completed={completedTasks}
-                  total={totalTasks}
-                  thick={true}
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 lg:shrink-0">
-                <span>{completedTasks}/{totalTasks}</span>
-                <span className="text-gray-500">&middot;</span>
-                <span>{completionPercentage}%</span>
-                <span className="text-gray-500">&middot;</span>
-                <span>{formattedEstimatedHoursRemaining}h left</span>
-              </div>
-            </div>
-
-            {/** Add Task button */}
-            <button
-              type="button"
-              className="self-start flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700"
-            >
-              <Plus size={16} />
-              Add Task
-            </button>
-          </div>
-        </div>
+        {taskActionError && <p className="text-xs text-rose-600">{taskActionError}</p>}
       </section>
 
       {isEditModalOpen && (
@@ -488,6 +663,26 @@ function ProjectDetail() {
           project={project}
           onClose={() => setIsDeleteModalOpen(false)}
           onProjectDeleted={handleProjectDeleted}
+        />
+      )}
+
+      {isTaskModalOpen && (
+        <TaskModal
+          mode={taskModalMode}
+          projectId={project.projectId}
+          projectCreatedAt={project.createdAt}
+          task={selectedTask}
+          onClose={closeTaskModal}
+          onTaskSaved={handleTaskSaved}
+        />
+      )}
+
+      {isDeleteTaskModalOpen && (
+        <DeleteTaskModal
+          projectId={project.projectId}
+          task={taskPendingDelete}
+          onClose={closeDeleteTaskModal}
+          onTaskDeleted={handleTaskDeleted}
         />
       )}
     </>
