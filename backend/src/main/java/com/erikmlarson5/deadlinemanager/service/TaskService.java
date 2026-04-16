@@ -214,10 +214,11 @@ public class TaskService {
             throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
         }
 
+        // Orphan removal handles the deletion of the task when removed from the project
+        project.removeTask(task);
+
         float newPriority = projectService.calculatePriority(project);
         project.setPriority(newPriority);
-        projectRepository.save(project);
-
-        taskRepository.delete(task);
+        projectRepository.saveAndFlush(project);
     }
 }
