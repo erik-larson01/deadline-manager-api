@@ -70,7 +70,6 @@ function TaskRow({task, isStatusUpdating = false, onToggleComplete, onStatusChan
 		const dueDate = new Date(`${taskData.dueDate}T00:00:00`)
 		const diffMs = dueDate.getTime() - today.getTime()
 		const dayDifference = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    console.log(taskData.title, 'dayDifference:', dayDifference)
 		if (dayDifference < 0) {
 			return {
 				label: `Overdue ${formatDueDateLabel(taskData.dueDate)}`,
