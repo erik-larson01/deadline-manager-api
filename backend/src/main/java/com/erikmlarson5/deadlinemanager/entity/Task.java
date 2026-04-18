@@ -22,7 +22,6 @@ public class Task {
 
     private String description;
 
-    @Column(nullable = false)
     private LocalDate dueDate;
 
     @Column(nullable = false)

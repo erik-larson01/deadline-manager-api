@@ -192,7 +192,7 @@ public class TaskService {
      */
     private void validateDueDateForCreate(LocalDate dueDate) {
         if (dueDate == null) {
-            throw new IllegalArgumentException("Due date is required");
+            return;
         }
 
         if (dueDate.isBefore(LocalDate.now())) {
@@ -207,7 +207,7 @@ public class TaskService {
      */
     private void validateDueDateForUpdate(Task task, LocalDate dueDate) {
         if (dueDate == null) {
-            throw new IllegalArgumentException("Due date is required");
+            return;
         }
 
         if (task.getCreatedAt() == null) {

@@ -16,7 +16,6 @@ public class TaskInputDTO {
     @Size(max = 500, message = "Description must be 500 characters or fewer")
     private String description;
 
-    @NotNull(message = "Due date is required")
     private LocalDate dueDate;
 
     @NotNull(message = "Estimated hours is required")
