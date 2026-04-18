@@ -11,6 +11,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 		IN_PROGRESS: 'IN_PROGRESS',
 		OVERDUE: 'OVERDUE',
 		DUE_TODAY: 'DUE_TODAY',
+		NO_DUE_DATE: 'NO_DUE_DATE',
 	}
 
 	// Sort options for task dropdown to keep option values centralized
@@ -60,6 +61,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 	const getTaskDueInfo = (task) => {
 		if (!task?.dueDate) {
 			return {
+				hasDueDate: false,
 				isOverdue: false,
 				isDueToday: false,
 			}
@@ -73,6 +75,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 		const dayDifference = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
 		return {
+			hasDueDate: true,
 			isOverdue: dayDifference < 0,
 			isDueToday: dayDifference === 0,
 		}
@@ -98,12 +101,22 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 			return task.status !== 'COMPLETED' && dueInfo.isDueToday
 		}
 
+		if (selectedFilter === FILTER_OPTIONS.NO_DUE_DATE) {
+			return task.status !== 'COMPLETED' && !dueInfo.hasDueDate
+		}
+
 		return true
 	})
 
 	// Sorts tasks based on selected sort option
 	const sortedTasks = [...filteredTasks].sort((a, b) => {
+		const aHasDueDate = Boolean(a?.dueDate)
+		const bHasDueDate = Boolean(b?.dueDate)
+
 		if (sortBy === SORT_OPTIONS.DUE_DATE_DESC) {
+			if (!aHasDueDate && !bHasDueDate) return 0
+			if (!aHasDueDate) return 1
+			if (!bHasDueDate) return -1
 			return getTimestamp(b.dueDate) - getTimestamp(a.dueDate)
 		}
 
@@ -126,6 +139,9 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 		}
 
 		// Default: due date soonest first
+		if (!aHasDueDate && !bHasDueDate) return 0
+		if (!aHasDueDate) return 1
+		if (!bHasDueDate) return -1
 		return getTimestamp(a.dueDate) - getTimestamp(b.dueDate)
 	})
 
@@ -141,7 +157,12 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 
 	const upcomingTasks = sortedTasks.filter((task) => {
 		const dueInfo = getTaskDueInfo(task)
-		return task.status !== 'COMPLETED' && !dueInfo.isOverdue && !dueInfo.isDueToday
+		return task.status !== 'COMPLETED' && dueInfo.hasDueDate && !dueInfo.isOverdue && !dueInfo.isDueToday
+	})
+
+	const noDueDateTasks = sortedTasks.filter((task) => {
+		const dueInfo = getTaskDueInfo(task)
+		return task.status !== 'COMPLETED' && !dueInfo.hasDueDate
 	})
 
 	const completedTasksList = sortedTasks.filter((task) => task.status === 'COMPLETED')
@@ -157,6 +178,11 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 		const dueInfo = getTaskDueInfo(task)
 		return task?.status !== 'COMPLETED' && dueInfo.isDueToday
 	}).length
+
+	const noDueDateTasksCount = safeTasks.filter((task) => {
+		const dueInfo = getTaskDueInfo(task)
+		return task?.status !== 'COMPLETED' && !dueInfo.hasDueDate
+	}).length
  
   // For non "All" filters, visible tasks are just the sorted tasks that match the filter
 	let visibleTasksForNonAllFilter = []
@@ -169,6 +195,7 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 		overdueTasks.length > 0 ||
 		dueTodayTasks.length > 0 ||
 		upcomingTasks.length > 0 ||
+		noDueDateTasks.length > 0 ||
 		(showCompleted && completedTasksList.length > 0)
 
 	return (
@@ -249,6 +276,13 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 						className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${selectedFilter === FILTER_OPTIONS.DUE_TODAY ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100'}`}
 					>
 						Due Today ({dueTodayTasksCount})
+					</button>
+					<button
+						type="button"
+						onClick={() => setSelectedFilter(FILTER_OPTIONS.NO_DUE_DATE)}
+						className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${selectedFilter === FILTER_OPTIONS.NO_DUE_DATE ? 'bg-slate-100 text-slate-700 ring-1 ring-slate-200' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100'}`}
+					>
+						No Due Date ({noDueDateTasksCount})
 					</button>
 				</div>
 
@@ -360,6 +394,29 @@ function TaskList({tasks, onAddTask, onTaskToggleComplete, onTaskStatusChange, o
 								) : (
 									<div className="space-y-2">
 										{upcomingTasks.map((task) => (
+											<TaskRow
+												key={task.taskId}
+												task={task}
+												isStatusUpdating={taskStatusUpdatingIds.includes(task.taskId)}
+												onToggleComplete={() => onTaskToggleComplete(task)}
+												onStatusChange={(nextStatus) => onTaskStatusChange(task, nextStatus)}
+												onEdit={() => onTaskEdit(task)}
+												onDelete={() => onTaskDelete(task)}
+											/>
+										))}
+									</div>
+								)}
+							</section>
+
+							<section>
+								<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">No Due Date ({noDueDateTasks.length})</h3>
+								{noDueDateTasks.length === 0 ? (
+									<div className="rounded-md border border-dashed border-gray-300 bg-white px-4 py-4 text-sm text-gray-500">
+										No tasks without due dates.
+									</div>
+								) : (
+									<div className="space-y-2">
+										{noDueDateTasks.map((task) => (
 											<TaskRow
 												key={task.taskId}
 												task={task}

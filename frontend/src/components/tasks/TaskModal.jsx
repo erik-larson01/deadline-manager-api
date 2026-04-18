@@ -97,7 +97,7 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					title: form.title,
-					dueDate: form.dueDate,
+					dueDate: form.dueDate || null,
 					status: form.status,
 					description: form.description,
 					difficulty: form.difficulty,
@@ -135,7 +135,6 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 	// Ensure required fields are filled before allowing form submission
 	const isValid =
 		form.title.trim() !== "" &&
-		form.dueDate !== "" &&
 		form.estimatedHours !== "" &&
 		!Number.isNaN(Number(form.estimatedHours))
 
@@ -196,10 +195,9 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<div className="space-y-1.5">
 										<label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">
-											Due Date <span className="text-red-500">*</span>
+											Due Date
 										</label>
 										<input
-											required
 											id="dueDate"
 											name="dueDate"
 											value={form.dueDate}
