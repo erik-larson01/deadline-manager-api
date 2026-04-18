@@ -40,6 +40,9 @@ public class ProjectService {
      * @return an outputDTO of the saved project
      */
     public ProjectOutputDTO createProject(ProjectInputDTO dto) {
+        validateDueDateForCreate(dto.getDueDate());
+        validateStatusForCreate(dto.getStatus());
+
         Project project = ProjectMapper.toEntity(dto);
         if (projectRepository.existsByTitle(project.getTitle())) {
             throw new IllegalStateException("Project with the same title already exists!");
@@ -157,6 +160,8 @@ public class ProjectService {
             throw new IllegalStateException("Project with the same title already exists");
         }
 
+        validateDueDateForUpdate(existingProject, dto.getDueDate());
+
         existingProject.setTitle(dto.getTitle());
         existingProject.setDescription(dto.getDescription());
         existingProject.setCategory(dto.getCategory());
@@ -170,6 +175,50 @@ public class ProjectService {
 
         Project savedProject = projectRepository.saveAndFlush(existingProject);
         return ProjectMapper.toOutputDto(savedProject);
+    }
+
+    /**
+     * Enforces due-date rules for project creation.
+     * @param dueDate the due date from the input DTO
+     */
+    private void validateDueDateForCreate(LocalDate dueDate) {
+        if (dueDate == null) {
+            throw new IllegalArgumentException("Due date is required");
+        }
+
+        if (dueDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Due date must be today or in the future when creating a project");
+        }
+    }
+
+    /**
+     * Enforces due-date rules for project updates.
+     * @param project the existing project being updated
+     * @param dueDate the due date from the input DTO
+     */
+    private void validateDueDateForUpdate(Project project, LocalDate dueDate) {
+        if (dueDate == null) {
+            throw new IllegalArgumentException("Due date is required");
+        }
+
+        if (project.getCreatedAt() == null) {
+            throw new IllegalStateException("Project creation timestamp is missing");
+        }
+
+        LocalDate projectCreatedDate = project.getCreatedAt().toLocalDate();
+        if (dueDate.isBefore(projectCreatedDate)) {
+            throw new IllegalArgumentException("Due date cannot be before the project creation date");
+        }
+    }
+
+    /**
+     * Enforces status rules for project creation.
+     * @param status the status from the input DTO
+     */
+    private void validateStatusForCreate(String status) {
+        if (Status.COMPLETED.name().equalsIgnoreCase(status)) {
+            throw new IllegalArgumentException("New projects cannot be created with COMPLETED status");
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -47,6 +48,9 @@ public class TaskService {
      * @return an outputDTO of the saved task
      */
     public TaskOutputDTO createTask(Long projectId, TaskInputDTO dto) {
+        validateDueDateForCreate(dto.getDueDate());
+        validateStatusForCreate(dto.getStatus());
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project with id: " + projectId + " not " + "found!"));
 
@@ -160,6 +164,12 @@ public class TaskService {
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + projectId + " not " +
                         "found!"));
 
+        if (!existingTask.getProject().getProjectId().equals(projectId)) {
+            throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
+        }
+
+        validateDueDateForUpdate(existingTask, dto.getDueDate());
+
         existingTask.setTitle(dto.getTitle());
         existingTask.setDescription(dto.getDescription());
         existingTask.setDueDate(dto.getDueDate());
@@ -174,6 +184,50 @@ public class TaskService {
 
         Task updatedTask = taskRepository.saveAndFlush(existingTask);
         return TaskMapper.toOutputDto(updatedTask);
+    }
+
+    /**
+     * Enforces due-date rules for task creation.
+     * @param dueDate the due date from the input DTO
+     */
+    private void validateDueDateForCreate(LocalDate dueDate) {
+        if (dueDate == null) {
+            throw new IllegalArgumentException("Due date is required");
+        }
+
+        if (dueDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Due date must be today or in the future when creating a task");
+        }
+    }
+
+    /**
+     * Enforces due-date rules for task updates.
+     * @param task the existing task being updated
+     * @param dueDate the due date from the input DTO
+     */
+    private void validateDueDateForUpdate(Task task, LocalDate dueDate) {
+        if (dueDate == null) {
+            throw new IllegalArgumentException("Due date is required");
+        }
+
+        if (task.getCreatedAt() == null) {
+            throw new IllegalStateException("Task creation timestamp is missing");
+        }
+
+        LocalDate taskCreatedDate = task.getCreatedAt().toLocalDate();
+        if (dueDate.isBefore(taskCreatedDate)) {
+            throw new IllegalArgumentException("Due date cannot be before the task creation date");
+        }
+    }
+
+    /**
+     * Enforces status rules for task creation.
+     * @param status the status from the input DTO
+     */
+    private void validateStatusForCreate(String status) {
+        if (Status.COMPLETED.name().equalsIgnoreCase(status)) {
+            throw new IllegalArgumentException("New tasks cannot be created with COMPLETED status");
+        }
     }
 
     /**
