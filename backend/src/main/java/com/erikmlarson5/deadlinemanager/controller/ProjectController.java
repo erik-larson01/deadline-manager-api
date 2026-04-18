@@ -5,6 +5,9 @@ import com.erikmlarson5.deadlinemanager.dto.ProjectOutputDTO;
 import com.erikmlarson5.deadlinemanager.service.ProjectService;
 import com.erikmlarson5.deadlinemanager.utils.Status;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +51,7 @@ public class ProjectController {
      * @return a response entity containing the found project
      */
     @GetMapping(path = "/{id}")
-    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable Long id) {
+    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable @Positive Long id) {
         ProjectOutputDTO project = projectService.getProjectById(id);
         return ResponseEntity.ok(project);
     }
@@ -91,7 +94,7 @@ public class ProjectController {
      * @return a response entity containing the found projects
      */
     @GetMapping(path = "/due-in")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam @Valid int days) {
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam @PositiveOrZero int days) {
         List<ProjectOutputDTO> projectsDueIn = projectService.getProjectsDueInDays(days);
         return ResponseEntity.ok(projectsDueIn);
     }
@@ -123,7 +126,7 @@ public class ProjectController {
      * @return a response entity of the updated project
      */
     @PutMapping(path = "/{id}")
-    public ResponseEntity<ProjectOutputDTO> updateProject(@PathVariable Long id,
+    public ResponseEntity<ProjectOutputDTO> updateProject(@PathVariable @Positive Long id,
                                                           @RequestBody @Valid ProjectInputDTO dto) {
         ProjectOutputDTO updatedProject = projectService.updateProject(id, dto);
         return ResponseEntity.ok(updatedProject);
@@ -136,8 +139,11 @@ public class ProjectController {
      * @return a response entity of the updated project
      */
     @PatchMapping(path = "/{id}/status")
-    public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable Long id,
-                                                                @RequestParam @Valid String newStatus) {
+    public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable @Positive Long id,
+                                                                @RequestParam
+                                                                @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
+                                                                        message = "newStatus must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
+                                                                String newStatus) {
         ProjectOutputDTO updatedProject = projectService.updateProjectStatus(id, newStatus);
         return ResponseEntity.ok(updatedProject);
     }
@@ -158,7 +164,7 @@ public class ProjectController {
      * @return a response entity that displays the successful deletion
      */
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProject(@PathVariable @Positive Long id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }

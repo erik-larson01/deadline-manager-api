@@ -10,16 +10,19 @@ import java.time.LocalDate;
 public class ProjectInputDTO {
 
     @NotBlank(message = "Title must not be blank")
+    @Size(max = 70, message = "Title must be 70 characters or fewer")
     private String title;
 
+    @Size(max = 2000, message = "Description must be 2000 characters or fewer")
     private String description;
 
+    @Size(max = 20, message = "Category must be 20 characters or fewer")
     private String category;
 
     @NotNull(message = "Due date is required")
     private LocalDate dueDate;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "Estimated hours must be >= 0")
+    @DecimalMin(value = "0.5", inclusive = true, message = "Estimated hours must be at least 0.5")
     private Float estimatedHours;
 
     @Min(value = 1, message = "Difficulty must be between 1 and 10")
@@ -27,6 +30,8 @@ public class ProjectInputDTO {
     private Integer difficulty;
 
     @NotBlank(message = "Status is required")
+    @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
+            message = "Status must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
     private String status;
 
     public String getTitle() { return title; }
