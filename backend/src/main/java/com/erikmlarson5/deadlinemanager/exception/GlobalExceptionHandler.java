@@ -1,8 +1,10 @@
 package com.erikmlarson5.deadlinemanager.exception;
 
 import com.erikmlarson5.deadlinemanager.dto.ErrorResponseDTO;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -63,6 +65,35 @@ public class GlobalExceptionHandler {
         });
 
         ErrorResponseDTO error = new ErrorResponseDTO(errorMessage.toString().trim(), LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles method-level validation errors (path/query params)
+     * @param e the ConstraintViolationException to be handled
+     * @return an error message including all validation failures
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleConstraintViolationException(ConstraintViolationException e) {
+        StringBuilder errorMessage = new StringBuilder("Validation failed: ");
+        e.getConstraintViolations().forEach(violation -> {
+            errorMessage.append("[").append(violation.getPropertyPath()).append(": ")
+                    .append(violation.getMessage()).append("] ");
+        });
+
+        ErrorResponseDTO error = new ErrorResponseDTO(errorMessage.toString().trim(), LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles invalid enum/value coercion for request params and path variables
+     * @param e the MethodArgumentTypeMismatchException to be handled
+     * @return an error message and an HTTP bad request status
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        String message = "Invalid value for parameter '" + e.getName() + "': " + e.getValue();
+        ErrorResponseDTO error = new ErrorResponseDTO(message, LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
