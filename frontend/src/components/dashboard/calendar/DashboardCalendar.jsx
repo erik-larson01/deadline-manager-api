@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CalendarGrid from './CalendarGrid'
 import CalendarDayDetail from './CalendarDayDetail'
-import { dateToFullString } from '../../../utils/taskUtils'
+import { dateToYearMonthDay } from '../../../utils/taskUtils'
 
 function DashboardCalendar({ calendarItems }) {
   // States to track the currently displayed month and the selected date for details view
 	const [currentMonth, setCurrentMonth] = useState(new Date())
-	const [selectedDate, setSelectedDate] = useState(dateToFullString(new Date()))
+	const [selectedDate, setSelectedDate] = useState(dateToYearMonthDay(new Date()))
 
 	const goToPrevMonth = () => {
 		setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1))
@@ -20,7 +20,7 @@ function DashboardCalendar({ calendarItems }) {
 	const goToToday = () => {
 		const today = new Date()
 		setCurrentMonth(today)
-		setSelectedDate(dateToFullString(today))
+		setSelectedDate(dateToYearMonthDay(today))
 	}
 
 	const monthLabel = currentMonth.toLocaleDateString('en-US', {
