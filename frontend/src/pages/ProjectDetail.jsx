@@ -630,7 +630,7 @@ function ProjectDetail() {
             )}
           </div>
 
-          <p className="max-w-3xl text-sm leading-6 text-gray-700">
+          <p className="max-w-3xl text-sm leading-6 text-gray-700 whitespace-pre-line">
             {displayedDescription || 'No description has been added for this project yet.'}
           </p>
         </div>
