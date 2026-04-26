@@ -1,11 +1,13 @@
 package com.erikmlarson5.deadlinemanager.service;
 
 import com.erikmlarson5.deadlinemanager.dto.TaskInputDTO;
+import com.erikmlarson5.deadlinemanager.dto.ProjectOutputDTO;
 import com.erikmlarson5.deadlinemanager.dto.TaskOutputDTO;
 import com.erikmlarson5.deadlinemanager.entity.Project;
 import com.erikmlarson5.deadlinemanager.entity.Task;
 import com.erikmlarson5.deadlinemanager.repository.ProjectRepository;
 import com.erikmlarson5.deadlinemanager.repository.TaskRepository;
+import com.erikmlarson5.deadlinemanager.utils.ProjectMapper;
 import com.erikmlarson5.deadlinemanager.utils.Status;
 import com.erikmlarson5.deadlinemanager.utils.TaskMapper;
 import jakarta.transaction.Transactional;
@@ -47,7 +49,7 @@ public class TaskService {
      * @param dto the inputDTO of all task fields
      * @return an outputDTO of the saved task
      */
-    public TaskOutputDTO createTask(Long projectId, TaskInputDTO dto) {
+    public ProjectOutputDTO createTask(Long projectId, TaskInputDTO dto) {
         validateDueDateForCreate(dto.getDueDate());
         validateStatusForCreate(dto.getStatus());
 
@@ -63,10 +65,9 @@ public class TaskService {
 
         float newPriority = projectService.calculatePriority(project);
         project.setPriority(newPriority);
-        projectRepository.save(project);
+        Project savedProject = projectRepository.saveAndFlush(project);
 
-        Task savedTask = project.getTasks().getLast();
-        return TaskMapper.toOutputDto(savedTask);
+        return ProjectMapper.toOutputDto(savedProject);
     }
 
     /**
@@ -155,7 +156,7 @@ public class TaskService {
      * @param dto an inputDTO object of all fields to replace
      * @return an outputDTO of the updated and saved task
      */
-    public TaskOutputDTO updateTask(Long projectId, Long taskId, TaskInputDTO dto) {
+    public ProjectOutputDTO updateTask(Long projectId, Long taskId, TaskInputDTO dto) {
         Task existingTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not " +
                         "found"));
@@ -178,12 +179,13 @@ public class TaskService {
         existingTask.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
         existingTask.setProject(project);
 
+        taskRepository.saveAndFlush(existingTask);
+
         float newPriority = projectService.calculatePriority(project);
         project.setPriority(newPriority);
-        projectRepository.save(project);
+        Project savedProject = projectRepository.saveAndFlush(project);
 
-        Task updatedTask = taskRepository.saveAndFlush(existingTask);
-        return TaskMapper.toOutputDto(updatedTask);
+        return ProjectMapper.toOutputDto(savedProject);
     }
 
     /**
@@ -237,18 +239,22 @@ public class TaskService {
      * @param newStatus the new status to change to
      * @return an outputDTO of the updated and saved task
      */
-    public TaskOutputDTO updateTaskStatus(Long projectId, Long taskId, String newStatus) {
+    public ProjectOutputDTO updateTaskStatus(Long projectId, Long taskId, String newStatus) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not found!"));
 
         if (!task.getProject().getProjectId().equals(projectId)) {
             throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
         }
-
+        
         task.setStatus(Status.valueOf(newStatus.toUpperCase()));
         taskRepository.saveAndFlush(task);
 
-        return TaskMapper.toOutputDto(task);
+        Project project = task.getProject();
+        project.setPriority(projectService.calculatePriority(project));
+        Project savedProject = projectRepository.saveAndFlush(project);
+
+        return ProjectMapper.toOutputDto(savedProject);
     }
 
     /**
@@ -256,7 +262,7 @@ public class TaskService {
      * @param projectId the id of the associated project
      * @param taskId the id of the task to delete
      */
-    public void deleteTask(Long projectId, Long taskId) {
+    public ProjectOutputDTO deleteTask(Long projectId, Long taskId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + projectId + " not " +
                         "found!"));
@@ -273,6 +279,7 @@ public class TaskService {
 
         float newPriority = projectService.calculatePriority(project);
         project.setPriority(newPriority);
-        projectRepository.saveAndFlush(project);
+        Project savedProject = projectRepository.saveAndFlush(project);
+        return ProjectMapper.toOutputDto(savedProject);
     }
 }

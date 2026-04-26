@@ -47,8 +47,7 @@ public class ProjectService {
         if (projectRepository.existsByTitle(project.getTitle())) {
             throw new IllegalStateException("Project with the same title already exists!");
         }
-        float priority = calculatePriority(project);
-        project.setPriority(priority);
+        recalculateProjectPriority(project);
 
         Project savedProject = projectRepository.save(project);
         return ProjectMapper.toOutputDto(savedProject);
@@ -62,6 +61,10 @@ public class ProjectService {
     public ProjectOutputDTO getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
+
+        if (recalculateProjectPriority(project)) {
+            projectRepository.save(project);
+        }
         return ProjectMapper.toOutputDto(project);
     }
 
@@ -85,6 +88,13 @@ public class ProjectService {
      */
     public List<ProjectOutputDTO> getAllProjects() {
         List<Project> allProjects = projectRepository.findAll();
+
+        for (Project project : allProjects) {
+            if (recalculateProjectPriority(project)) {
+                projectRepository.save(project);
+            }
+        }
+
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
@@ -136,12 +146,29 @@ public class ProjectService {
      * @return a list of projects in priority order, converted to outputDTOs
      */
     public List<ProjectOutputDTO> getProjectsSortedByPriority() {
+        updateAllProjectPriorities();
+
         List<Project> allProjects = projectRepository.findAllByOrderByPriorityDesc();
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
         }
         return allOutputDTOs;
+    }
+
+    /**
+     * Recalculates a project's priority and applies it only when it changes.
+     * @param project the project to recalculate
+     * @return true when the priority value was changed
+     */
+    private boolean recalculateProjectPriority(Project project) {
+        float recalculatedPriority = calculatePriority(project);
+        if (Float.compare(project.getPriority(), recalculatedPriority) == 0) {
+            return false;
+        }
+
+        project.setPriority(recalculatedPriority);
+        return true;
     }
 
     /**
@@ -170,8 +197,7 @@ public class ProjectService {
         existingProject.setDifficulty(dto.getDifficulty());
         existingProject.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
 
-        float newPriority = calculatePriority(existingProject);
-        existingProject.setPriority(newPriority);
+        recalculateProjectPriority(existingProject);
 
         Project savedProject = projectRepository.saveAndFlush(existingProject);
         return ProjectMapper.toOutputDto(savedProject);
@@ -242,11 +268,17 @@ public class ProjectService {
      */
     public void updateAllProjectPriorities() {
         List<Project> projects = projectRepository.findAll();
+        List<Project> changedProjects = new ArrayList<>();
+
         for (Project project : projects) {
-            float newPriority = calculatePriority(project);
-            project.setPriority(newPriority);
+            if (recalculateProjectPriority(project)) {
+                changedProjects.add(project);
+            }
         }
-        projectRepository.saveAll(projects);
+
+        if (!changedProjects.isEmpty()) {
+            projectRepository.saveAll(changedProjects);
+        }
     }
 
     /**
@@ -260,45 +292,29 @@ public class ProjectService {
     }
 
     /**
-     * Calculates the priority of a project using 5 different factors
-     * @param project the project to calculate priority for
-     * @return a priority score from 0-10
+     * Calculates a priority score for a project based on time pressure, workload, difficulty, and progress factors
+     * @param project the project to calculate the priority score for
+     * @return a priority score from 0-10, rounded to 1 decimal place
      */
     public float calculatePriority(Project project) {
         LocalDate today = LocalDate.now();
-        LocalDate dueDate = project.getDueDate();
+        long daysLeft = ChronoUnit.DAYS.between(today, project.getDueDate());
 
-        // Maximum priority for overdue projects
-        if (dueDate.isBefore(today)) {
-            return 10.0f;
-        }
+        // Calculate estimated hours remaining across all incomplete tasks
+        double hoursRemaining = calculateRemainingWork(project);
 
-        long daysLeft = ChronoUnit.DAYS.between(today, dueDate);
-        double totalHoursRemaining = calculateRemainingWork(project);
+        // Get scores for time pressure, work pressure, and progress
+        double timePressure  = calculateTimePressure(daysLeft);
+        double workPressure  = calculateWorkPressure(hoursRemaining, daysLeft);
+        double progressScore = calculateProgressScore(project, daysLeft);
 
-        // Time pressure based on days left
-        double timePressureScore = calculateTimePressureScore(daysLeft);
+        double baseScore = (timePressure * 0.50) + (workPressure * 0.30) + (progressScore * 0.20);
 
-        // Workload factor based on estimated hours of all tasks
-        double workloadScore = calculateWorkloadScore(totalHoursRemaining);
+        // Adjust the base score by a difficulty multiplier to get the final priority score
+        double priority = baseScore * getDifficultyMultiplier(project);
 
-        // Difficulty factor based on user input (0-10); null uses neutral midpoint.
-        double difficultyFactor = project.getDifficulty() != null
-                ? Math.min(Math.max(project.getDifficulty(), 0), 10)
-                : 5.0;
-
-        // Progress factor based on completed tasks
-        double progressScore = calculateProgressScore(project);
-
-        double baseScore = (timePressureScore * 0.5) +
-                (workloadScore * 0.3) +
-                (progressScore * 0.2);
-
-        // Adds a multiplier for more difficult projects
-        double difficultyMultiplier = 1.0 + (difficultyFactor / 20.0);
-        double priority = baseScore * difficultyMultiplier;
-
-        return Math.round(Math.min(priority, 10.0) * 10f) / 10f;
+        // Ensure the final priority score is between 0 and 10, and round to 1 decimal place
+        return (float) (Math.round(Math.min(priority, 10.0) * 10.0) / 10.0);
     }
 
     /**
@@ -307,16 +323,18 @@ public class ProjectService {
      * @return the total estimated hours across all tasks, or 5.0 if none
      */
     private double calculateRemainingWork(Project project) {
+        // If no tasks, use estimated hours from project or default to 5.0 if not provided
         if (project.getTasks() == null || project.getTasks().isEmpty()) {
-            if (project.getEstimatedHours() != null) {
-                return Math.max(project.getEstimatedHours(), 0f);
-            }
-            return 5.0;
+            return project.getEstimatedHours() != null
+                ? Math.max(project.getEstimatedHours(), 0.5)
+                : 5.0;
         }
 
         double totalHours = 0.0;
+
+        // Sum estimated hours for all incomplete tasks
         for (Task task : project.getTasks()) {
-            if (task.getStatus() != Status.COMPLETED && task.getEstimatedHours() != null) {
+            if (task.getStatus() != Status.COMPLETED) {
                 totalHours += task.getEstimatedHours();
             }
         }
@@ -328,68 +346,84 @@ public class ProjectService {
      * @param daysLeft the number of days until a project's deadline
      * @return a score based on estimated time pressure
      */
-    private double calculateTimePressureScore(long daysLeft) {
-        if (daysLeft <= 0) {
-            return 10.0;
+    private double calculateTimePressure(long daysLeft) {
+        // If overdue, very high pressure but decays as it gets more overdue to avoid infinite pressure
+        if (daysLeft < 0) {
+            double daysOverdue = Math.abs(daysLeft);
+            return 6.0 + 4.0 / (1.0 + 0.08 * daysOverdue);
         }
 
-        // Exponential time pressure (higher pressure the closer the deadline)
-        if (daysLeft >= 14) {
-            return 1.0;
-        } else if (daysLeft >= 7) {
-            return 2.0 + ((14 - daysLeft) / 7.0) * 3.0;
-        } else if (daysLeft >= 3) {
-            return 5.0 + ((7 - daysLeft) / 4.0) * 3.0;
-        } else {
-            return 8.0 + ((3 - daysLeft) / 3.0) * 2.0;
-        }
+        if (daysLeft == 0) return 9.5;
+
+        // Exponential decay of time pressure as the deadline gets further away
+        return 9.5 * Math.exp(-0.11 * daysLeft);
     }
 
     /**
-     * Used to calculate a workload score based on estimated hours left in a project
+     * Used to calculate a work pressure score based on estimated hours left in a project and time until deadline
      * @param hoursRemaining estimated hours left in a given project
-     * @return a score based on estimated workload
+     * @param daysLeft the number of days until a project's deadline
+     * @return a score based on estimated workload and urgency
      */
-    private double calculateWorkloadScore(double hoursRemaining) {
-        if (hoursRemaining <= 0) {
-            return 1.0; // Completed work
+    private double calculateWorkPressure(double hoursRemaining, long daysLeft) {
+        if (hoursRemaining <= 0) return 0.0;
+
+        // If overdue, work pressure is high 
+        if (daysLeft <= 0) {
+            return Math.min(10.0, 2.0 + hoursRemaining * 0.7);
         }
 
-        // Logarithmic workload scaling
-        if (hoursRemaining <= 2) {
-            return 2.0 + hoursRemaining;
-        } else if (hoursRemaining <= 8) {
-            return 4.0 + ((hoursRemaining - 2) / 6.0) * 3.0;
-        } else if (hoursRemaining <= 20) {
-            return 7.0 + ((hoursRemaining - 8) / 12.0) * 2.0;
-        } else {
-            return 9.0 + Math.min(1.0, (hoursRemaining - 20) / 20.0);
-        }
+        double hoursPerDay = hoursRemaining / daysLeft;
+
+        // Exponential growth of work pressure as hours per day increases, capped at 10
+        return Math.min(10.0, 10.0 * (1.0 - Math.exp(-0.3 * hoursPerDay)));
     }
+
 
     /**
      * Calculates a progress score based on the number of completed tasks, or 5.0 if none
      * @param project the project to calculate the score for
      * @return a score based on estimated progress
      */
-    private double calculateProgressScore(Project project) {
-        List<Task> allTasks = project.getTasks();
-        if (allTasks == null || allTasks.isEmpty()) {
-            // Neutral progress score for projects without tasks, if any
-            return 5.0;
+    private double calculateProgressScore(Project project, long daysLeft) {
+        List<Task> tasks = project.getTasks();
+
+        // If no tasks, use time pressure score
+        if (tasks == null || tasks.isEmpty()) {
+            return daysLeft <= 7 ? 7.0 : 5.0;
         }
 
-        int completedTasks = 0;
-        for (Task task : allTasks) {
-            if (task.getStatus() == Status.COMPLETED) {
-                completedTasks++;
-            }
-        }
+        // Calculate completion ratio of tasks
+        long total = tasks.size();
+        long completed = tasks.stream()
+            .filter(t -> t.getStatus() == Status.COMPLETED)
+            .count();
 
-        double completionPercentage = (double) completedTasks / allTasks.size();
+        double completionRatio = (double) completed / total;
 
-        // Progress score is the inverse of completion percentage
-        return (1.0 - completionPercentage) * 10.0;
+        double rawScore = 10.0 * (1.0 - completionRatio);
+
+        // If deadline is close, adjust the score to be higher to reflect urgency
+        double timeAdjustment =
+            daysLeft <= 0 ? 1.3 :
+            daysLeft <= 3 ? 1.2 :
+            daysLeft <= 7 ? 1.1 :
+            1.0;
+
+        return Math.min(10.0, rawScore * timeAdjustment);
+    }
+
+    /**
+     * Calculates a difficulty multiplier to adjust the priority score based on the project's difficulty
+     * @param project the project to calculate the multiplier for
+     * @return a multiplier where higher difficulty results in a higher multiplier
+     */
+    private double getDifficultyMultiplier(Project project) {
+        if (project.getDifficulty() == null) return 1.25;
+
+        // Clamp difficulty to a range of 1-10 to avoid extreme multipliers
+        double difficulty = Math.min(Math.max(project.getDifficulty(), 1), 10);
+        return 1.0 + (difficulty / 15.0);
     }
 }
 
