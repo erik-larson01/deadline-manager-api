@@ -110,10 +110,6 @@ function ProjectsOverview() {
       return a.priority - b.priority
     }
 
-    if (sortBy === SORT_OPTIONS.PRIORITY_DESC) {
-      return b.priority - a.priority
-    }
-
     if (sortBy === SORT_OPTIONS.DUE_DATE_ASC) {
       return getTimestamp(a.dueDate) - getTimestamp(b.dueDate)
     }
@@ -122,8 +118,12 @@ function ProjectsOverview() {
       return getTimestamp(b.dueDate) - getTimestamp(a.dueDate)
     }
 
-    // Default: newest first by creation date.
-    return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
+    if (sortBy === SORT_OPTIONS.CREATED_AT_DESC) {
+      return getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
+    }
+
+    // Default: priority descending
+    return b.priority - a.priority
   })
 
   // Projects that will be rendered as cards. These are calculated after filtering and sorting have been completed
@@ -204,12 +204,13 @@ function ProjectsOverview() {
               onChange={(event) => setSortBy(event.target.value)}
               className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             >
-              <option value={SORT_OPTIONS.CREATED_AT_DESC}>Newest first</option>
-              <option value={SORT_OPTIONS.TITLE_ASC}>Title (A-Z)</option>
-              <option value={SORT_OPTIONS.PRIORITY_ASC}>Priority (Low-High)</option>
               <option value={SORT_OPTIONS.PRIORITY_DESC}>Priority (High-Low)</option>
+              <option value={SORT_OPTIONS.PRIORITY_ASC}>Priority (Low-High)</option>
               <option value={SORT_OPTIONS.DUE_DATE_ASC}>Due date (Soonest)</option>
               <option value={SORT_OPTIONS.DUE_DATE_DESC}>Due date (Latest)</option>
+              <option value={SORT_OPTIONS.CREATED_AT_DESC}>Newest first</option>
+              <option value={SORT_OPTIONS.TITLE_ASC}>Title (A-Z)</option>
+
             </select>
           </div>
         </div>
