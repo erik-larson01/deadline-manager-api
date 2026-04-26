@@ -183,15 +183,7 @@ function ProjectDetail() {
 
   // After a project is edited and saved, update the project in both the local state and the projects context
   const handleProjectSaved = (updatedProject) => {
-    setProject((prevProject) => {
-      if (!prevProject) return updatedProject
-
-      // Merge the updated project data with the existing project state
-      return {
-        ...prevProject,
-        ...updatedProject,
-      }
-    })
+    setProject(updatedProject)
     setStatusValue(updatedProject.status)
     setStatusUpdateError(null)
 
@@ -292,60 +284,18 @@ function ProjectDetail() {
     }
   }
 
-  // After a task is created, add it to project state and projects context
-  const onTaskCreated = (createdTask) => {
-    if (!project) return
+  // Sync full project state after task create/update responses from the backend
+  const handleTaskSaved = (updatedProject) => {
+    if (!updatedProject) return
 
-    const nextTasks = [...tasks, createdTask]
-
-    // Update local state
-    setProject((prevProject) => {
-      if (!prevProject) return prevProject
-
-      return {
-        ...prevProject,
-        tasks: nextTasks,
-      }
-    })
-
-    // Sync tasks to context outside setProject
-    syncTasksToContext(project.projectId, nextTasks)
-
-    setTaskActionError(null)
-  }
-
-  // After a task is updated, update it in project state and projects context
-  const onTaskUpdated = (updatedTask) => {
-    if (!project) return
-
-    const nextTasks = tasks.map((task) =>
-      task.taskId === updatedTask.taskId ? updatedTask : task
+    setProject(updatedProject)
+    setStatusValue(updatedProject.status)
+    setProjects((prevProjects) =>
+      prevProjects.map((prevProject) =>
+        prevProject.projectId === updatedProject.projectId ? updatedProject : prevProject
+      )
     )
-
-    setProject((prevProject) => {
-      if (!prevProject) return prevProject
-
-      return {
-        ...prevProject,
-        tasks: nextTasks,
-      }
-    })
-
-    syncTasksToContext(project.projectId, nextTasks)
-
     setTaskActionError(null)
-  }
-
-  // Handles saving a task, either creating a new task or updating an existing one
-  const handleTaskSaved = (savedTask) => {
-    const taskExists = tasks.some((task) => task.taskId === savedTask.taskId)
-
-    if (taskExists) {
-      onTaskUpdated(savedTask)
-      return
-    }
-
-    onTaskCreated(savedTask)
   }
 
   const openCreateTaskModal = () => {
@@ -433,8 +383,8 @@ function ProjectDetail() {
         throw new Error(message)
       }
 
-      const updatedTask = await response.json()
-      onTaskUpdated(updatedTask)
+      const updatedProject = await response.json()
+      handleTaskSaved(updatedProject)
     } catch (updateError) {
       // Roll back to previous tasks on error, and show error message
       setTaskActionError(updateError.message)
@@ -463,23 +413,17 @@ function ProjectDetail() {
     await handleTaskStatusChange(task, nextStatus)
   }
 
-  // Removes a task with a given taskId and updates state and context
-  const handleTaskDeleted = (taskId) => {
-    if (!project) return
+  // Sync full project state after task deletion response from the backend
+  const handleTaskDeleted = (updatedProject) => {
+    if (!updatedProject) return
 
-    const nextTasks = tasks.filter((task) => task.taskId !== taskId)
-
-    setProject((prevProject) => {
-      if (!prevProject) return prevProject
-
-      return {
-        ...prevProject,
-        tasks: nextTasks,
-      }
-    })
-
-    syncTasksToContext(project.projectId, nextTasks)
-
+    setProject(updatedProject)
+    setStatusValue(updatedProject.status)
+    setProjects((prevProjects) =>
+      prevProjects.map((prevProject) =>
+        prevProject.projectId === updatedProject.projectId ? updatedProject : prevProject
+      )
+    )
     setTaskActionError(null)
     closeDeleteTaskModal()
   }

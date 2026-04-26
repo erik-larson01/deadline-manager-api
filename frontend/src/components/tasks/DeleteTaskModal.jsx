@@ -33,7 +33,8 @@ function DeleteTaskModal({ onClose, onTaskDeleted, projectId, task }) {
 				throw new Error(message)
 			}
 
-			onTaskDeleted(task.taskId)
+			const updatedProject = await response.json()
+			onTaskDeleted(updatedProject)
 			onClose()
 		} catch (error) {
 			setSubmitError(error.message)

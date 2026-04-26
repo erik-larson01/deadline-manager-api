@@ -121,9 +121,9 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 				throw new Error(message)
 			}
 
-			const savedTask = await response.json()
+			const updatedProject = await response.json()
 
-			onTaskSaved(savedTask)
+			onTaskSaved(updatedProject)
 			onClose()
 		} catch (error) {
 			setSubmitError(error.message)

@@ -41,7 +41,7 @@ function Dashboard() {
   const focusTasks = incompleteTasks
     .map((task) => ({
       ...task,
-      score: calculateTaskScore(task, Number(task.project?.priority) || 0),
+      score: calculateTaskScore(task, task.project),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
