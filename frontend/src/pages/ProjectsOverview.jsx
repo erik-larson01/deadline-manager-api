@@ -26,7 +26,7 @@ function ProjectsOverview() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  const [sortBy, setSortBy] = useState(SORT_OPTIONS.CREATED_AT_DESC)
+  const [sortBy, setSortBy] = useState(SORT_OPTIONS.PRIORITY_DESC)
   const [titleSearch, setTitleSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES_OPTION)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -210,7 +210,6 @@ function ProjectsOverview() {
               <option value={SORT_OPTIONS.DUE_DATE_DESC}>Due date (Latest)</option>
               <option value={SORT_OPTIONS.CREATED_AT_DESC}>Newest first</option>
               <option value={SORT_OPTIONS.TITLE_ASC}>Title (A-Z)</option>
-
             </select>
           </div>
         </div>
