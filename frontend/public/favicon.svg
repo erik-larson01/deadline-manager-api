@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#4f46e5"/>
-  <polyline points="6,24 13,16 19,20 26,8" 
-    fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-9 h-9">
+  <rect width="48" height="48" rx="10" fill="#4f46e5"/>
+
+  {/* pill 1 — top priority, full width */}
+  <rect x="7" y="11" width="34" height="8" rx="4" fill="white"/>
+
+  {/* pill 2 — medium */}
+  <rect x="7" y="21" width="25" height="8" rx="4" fill="white" opacity="0.6"/>
+
+  {/* pill 3 — lowest */}
+  <rect x="7" y="31" width="16" height="8" rx="4" fill="white" opacity="0.35"/>
+
 </svg>
