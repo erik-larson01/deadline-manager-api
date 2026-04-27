@@ -51,7 +51,7 @@ public class SecurityConfig {
     JwtDecoder jwtDecoder() {
         // Set up a JWT decoder that validates the issuer and audience of incoming JWTs
         NimbusJwtDecoder jwtDecoder = JwtDecoders.fromOidcIssuerLocation(issuer);
-        
+
         // Custom validator to check the audience claim in the JWT
         OAuth2TokenValidator<Jwt> audienceValidator = token -> {
             List<String> audiences = token.getAudience();
@@ -76,7 +76,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigins));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET","POST","PUT", "PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
