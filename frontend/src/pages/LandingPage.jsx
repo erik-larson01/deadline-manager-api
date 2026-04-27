@@ -7,6 +7,7 @@ function LandingPage({ error }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-white via-indigo-50/30 to-indigo-100/40 text-gray-900">
       <div className="relative mx-auto flex w-full max-w-6xl flex-col px-6 pb-12 pt-10 sm:px-10">
+        {/* Header section with title and sign in */}
         <header className="animate-fade-in-slow flex items-center justify-between">
           <div className="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-9 w-9">
@@ -34,6 +35,7 @@ function LandingPage({ error }) {
           </button>
         </header>
 
+       {/* Main content section with features and call to action */}
         <main className="mt-14 grid gap-10 lg:grid-cols-[1.10fr_0.90fr] lg:items-center">
           <section className="animate-fade-up space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">
@@ -54,6 +56,7 @@ function LandingPage({ error }) {
               <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
             )}
 
+            {/* Sign Up Button and Log In Button */}
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
@@ -72,18 +75,19 @@ function LandingPage({ error }) {
               </button>
             </div>
 
+            {/* Features section */}
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
+              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                 <GraduationCap size={16} className="text-indigo-500" />
                 <p className="mt-2 text-sm font-medium text-gray-900">Canvas Integration</p>
                 <p className="mt-1 text-xs text-gray-600">Import assignments and deadlines directly from Canvas.</p>
               </div>
-              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
+              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                 <CalendarClock size={16} className="text-indigo-500" />
                 <p className="mt-2 text-sm font-medium text-gray-900">Deadline aware planning</p>
                 <p className="mt-1 text-xs text-gray-600">Urgency increases as deadlines approach.</p>
               </div>
-              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
+              <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                 <CheckCircle2 size={16} className="text-emerald-500" />
                 <p className="mt-2 text-sm font-medium text-gray-900">Weekly completion tracking</p>
                 <p className="mt-1 text-xs text-gray-600">Track progress and consistency across all work.</p>
@@ -91,6 +95,7 @@ function LandingPage({ error }) {
             </div>
           </section>
 
+          {/** Focus view section with example ranked tasks */}
           <section className="animate-fade-up-delay rounded-3xl border border-indigo-100 bg-white p-5 shadow-xl sm:p-6">
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
               <div className="mb-5 flex items-center justify-between">
@@ -103,7 +108,7 @@ function LandingPage({ error }) {
               </div>
 
               <div className="space-y-3">
-                <div className="rounded-xl border border-gray-200 bg-white p-3">
+                <div className="rounded-xl border border-gray-200 bg-white p-3 hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-800">STAT 340 Final Report</p>
                     <span className="text-xs font-semibold text-rose-600">9.1</span>
@@ -111,7 +116,7 @@ function LandingPage({ error }) {
                   <p className="mt-1 text-xs text-gray-500">Due tomorrow · high workload</p>
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white p-3">
+                <div className="rounded-xl border border-gray-200 bg-white p-3 hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-800">History Seminar Paper: Cold War Case Study</p>
                     <span className="text-xs font-semibold text-amber-600">7.8</span>
@@ -119,7 +124,7 @@ function LandingPage({ error }) {
                   <p className="mt-1 text-xs text-gray-500">Due in 4 days · medium priority</p>
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white p-3">
+                <div className="rounded-xl border border-gray-200 bg-white p-3 hover:bg-indigo-50 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg transition-all duration-200">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-800">Chapter 7 Textbook Reading</p>
                     <span className="text-xs font-semibold text-indigo-600">5.9</span>
