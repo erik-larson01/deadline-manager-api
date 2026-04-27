@@ -20,6 +20,9 @@ public class Project {
     private Long projectId;
 
     @Column(nullable = false)
+    private String userId;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "text")
@@ -71,6 +74,14 @@ public class Project {
 
     public Long getProjectId() {
         return projectId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {

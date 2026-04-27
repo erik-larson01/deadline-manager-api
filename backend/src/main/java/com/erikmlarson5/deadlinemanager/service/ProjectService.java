@@ -39,12 +39,13 @@ public class ProjectService {
      * @param dto the inputDTO of all project fields
      * @return an outputDTO of the saved project
      */
-    public ProjectOutputDTO createProject(ProjectInputDTO dto) {
+    public ProjectOutputDTO createProject(ProjectInputDTO dto, String userId) {
         validateDueDateForCreate(dto.getDueDate());
         validateStatusForCreate(dto.getStatus());
 
         Project project = ProjectMapper.toEntity(dto);
-        if (projectRepository.existsByTitle(project.getTitle())) {
+        project.setUserId(userId);
+        if (projectRepository.existsByTitleAndUserId(project.getTitle(), userId)) {
             throw new IllegalStateException("Project with the same title already exists!");
         }
         recalculateProjectPriority(project);
@@ -58,8 +59,8 @@ public class ProjectService {
      * @param id the id of the project
      * @return an outputDTO of the found project
      */
-    public ProjectOutputDTO getProjectById(Long id) {
-        Project project = projectRepository.findById(id)
+    public ProjectOutputDTO getProjectById(Long id, String userId) {
+        Project project = projectRepository.findByProjectIdAndUserId(id, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Project with id: " + id + " not found!"));
 
         if (recalculateProjectPriority(project)) {
@@ -73,8 +74,8 @@ public class ProjectService {
      * @param category the name of the category to search by
      * @return a list of all projects in the provided category, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getProjectsInCategory(String category) {
-        List<Project> allProjects = projectRepository.findByCategoryIgnoreCase(category);
+    public List<ProjectOutputDTO> getProjectsInCategory(String category, String userId) {
+        List<Project> allProjects = projectRepository.findByCategoryIgnoreCaseAndUserId(category, userId);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
@@ -86,8 +87,8 @@ public class ProjectService {
      * Gets a list of all projects
      * @return a list of all projects, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getAllProjects() {
-        List<Project> allProjects = projectRepository.findAll();
+    public List<ProjectOutputDTO> getAllProjects(String userId) {
+        List<Project> allProjects = projectRepository.findByUserId(userId);
 
         for (Project project : allProjects) {
             if (recalculateProjectPriority(project)) {
@@ -107,10 +108,10 @@ public class ProjectService {
      * @param days the number of days until a given deadline
      * @return a list of all projects due in X days, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getProjectsDueInDays(int days) {
+    public List<ProjectOutputDTO> getProjectsDueInDays(int days, String userId) {
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(days);
-        List<Project> projects = projectRepository.findByDueDateBetween(today, deadline);
+        List<Project> projects = projectRepository.findByDueDateBetweenAndUserId(today, deadline, userId);
 
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : projects) {
@@ -124,8 +125,8 @@ public class ProjectService {
      * @param status the status query to search by
      * @return a list of all projects by specific status, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getProjectsByStatus(Status status) {
-        List<Project> allProjects = projectRepository.findByStatus(status);
+    public List<ProjectOutputDTO> getProjectsByStatus(Status status, String userId) {
+        List<Project> allProjects = projectRepository.findByStatusAndUserId(status, userId);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
@@ -137,18 +138,18 @@ public class ProjectService {
      * Gets all projects with a status of COMPLETED
      * @return a list of all incomplete tasks in a project, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getCompletedProjects() {
-        return getProjectsByStatus(Status.COMPLETED);
+    public List<ProjectOutputDTO> getCompletedProjects(String userId) {
+        return getProjectsByStatus(Status.COMPLETED, userId);
     }
 
     /**
      * Gets all projects in a list, sorted by calculated priority
      * @return a list of projects in priority order, converted to outputDTOs
      */
-    public List<ProjectOutputDTO> getProjectsSortedByPriority() {
-        updateAllProjectPriorities();
+    public List<ProjectOutputDTO> getProjectsSortedByPriority(String userId) {
+        updateAllProjectPriorities(userId);
 
-        List<Project> allProjects = projectRepository.findAllByOrderByPriorityDesc();
+        List<Project> allProjects = projectRepository.findAllByUserIdOrderByPriorityDesc(userId);
         List<ProjectOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Project project : allProjects) {
             allOutputDTOs.add(ProjectMapper.toOutputDto(project));
@@ -178,12 +179,12 @@ public class ProjectService {
      * @param dto an inputDTO object of all fields to replace
      * @return an outputDTO of the updated and saved task
      */
-    public ProjectOutputDTO updateProject(Long id, ProjectInputDTO dto) {
-        Project existingProject = projectRepository.findById(id)
+    public ProjectOutputDTO updateProject(Long id, ProjectInputDTO dto, String userId) {
+        Project existingProject = projectRepository.findByProjectIdAndUserId(id, userId)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not found!"));
 
         if (!existingProject.getTitle().equals(dto.getTitle()) &&
-                projectRepository.existsByTitle(dto.getTitle())) {
+            projectRepository.existsByTitleAndUserId(dto.getTitle(), userId)) {
             throw new IllegalStateException("Project with the same title already exists");
         }
 
@@ -253,8 +254,8 @@ public class ProjectService {
      * @param newStatus the new status to change to
      * @return an outputDTO of the updated and saved task
      */
-    public ProjectOutputDTO updateProjectStatus(Long id, String newStatus) {
-        Project project = projectRepository.findById(id)
+    public ProjectOutputDTO updateProjectStatus(Long id, String newStatus, String userId) {
+        Project project = projectRepository.findByProjectIdAndUserId(id, userId)
                 .orElseThrow(() -> new NoSuchElementException("Project with id " + id + " not " + "found!"));
 
         project.setStatus(Status.valueOf(newStatus.toUpperCase()));
@@ -266,8 +267,8 @@ public class ProjectService {
     /**
      * Recalculates all project priorities to account for the current date and time
      */
-    public void updateAllProjectPriorities() {
-        List<Project> projects = projectRepository.findAll();
+    public void updateAllProjectPriorities(String userId) {
+        List<Project> projects = projectRepository.findByUserId(userId);
         List<Project> changedProjects = new ArrayList<>();
 
         for (Project project : projects) {
@@ -285,8 +286,8 @@ public class ProjectService {
      * Deletes a project in the database
      * @param id the id of the project to delete
      */
-    public void deleteProject(Long id) {
-        Project project = projectRepository.findById(id)
+    public void deleteProject(Long id, String userId) {
+        Project project = projectRepository.findByProjectIdAndUserId(id, userId)
                 .orElseThrow(() -> new NoSuchElementException("Project with id: " + id + " not found!"));
         projectRepository.delete(project);
     }

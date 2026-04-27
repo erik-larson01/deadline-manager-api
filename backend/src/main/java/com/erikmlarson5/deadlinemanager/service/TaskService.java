@@ -49,11 +49,11 @@ public class TaskService {
      * @param dto the inputDTO of all task fields
      * @return an outputDTO of the saved task
      */
-    public ProjectOutputDTO createTask(Long projectId, TaskInputDTO dto) {
+    public ProjectOutputDTO createTask(Long projectId, TaskInputDTO dto, String userId) {
         validateDueDateForCreate(dto.getDueDate());
         validateStatusForCreate(dto.getStatus());
 
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Project with id: " + projectId + " not " + "found!"));
 
         Task task = TaskMapper.toEntity(dto, project);
@@ -76,16 +76,10 @@ public class TaskService {
      * @param taskId the id of the task to be found
      * @return an outputDTO of the found task
      */
-    public TaskOutputDTO getTaskById(Long projectId, Long taskId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + projectId + " not " + "found!"));
-
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-
-        if (!task.getProject().getProjectId().equals(project.getProjectId())) {
-            throw new IllegalArgumentException("Task does not belong to this project");
-        }
+    public TaskOutputDTO getTaskById(Long projectId, Long taskId, String userId) {
+        Task task = taskRepository
+            .findByTaskIdAndProject_ProjectIdAndProject_UserId(taskId, projectId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         return TaskMapper.toOutputDto(task);
     }
@@ -94,8 +88,8 @@ public class TaskService {
      * Gets a list of all tasks across all projects
      * @return a list of all tasks, converted to outputDTOs
      */
-    public List<TaskOutputDTO> getAllTasks() {
-        List<Task> allTasks = taskRepository.findAll();
+    public List<TaskOutputDTO> getAllTasks(String userId) {
+        List<Task> allTasks = taskRepository.findByProject_UserId(userId);
         List<TaskOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Task task : allTasks) {
             allOutputDTOs.add(TaskMapper.toOutputDto(task));
@@ -108,8 +102,8 @@ public class TaskService {
      * @param status the status query to search by
      * @return a list of all tasks by specific status, converted to outputDTOs
      */
-    public List<TaskOutputDTO> getAllTasksByStatus(Status status) {
-        List<Task> allTasks = taskRepository.findByStatus(status);
+    public List<TaskOutputDTO> getAllTasksByStatus(Status status, String userId) {
+        List<Task> allTasks = taskRepository.findByStatusAndProject_UserId(status, userId);
         List<TaskOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Task task : allTasks) {
             allOutputDTOs.add(TaskMapper.toOutputDto(task));
@@ -122,8 +116,12 @@ public class TaskService {
      * @param projectId the project to get all tasks from
      * @return a list of all tasks in a project, converted to outputDTOs
      */
-    public List<TaskOutputDTO> getTasksInProject(Long projectId) {
-        List<Task> allTasks = taskRepository.findByProject_ProjectId(projectId);
+    public List<TaskOutputDTO> getTasksInProject(Long projectId, String userId) {
+        // ensures project belongs to user and returns tasks for that project
+        projectRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + projectId + " not found!"));
+
+        List<Task> allTasks = taskRepository.findByProject_ProjectIdAndProject_UserId(projectId, userId);
         List<TaskOutputDTO> allOutputDTOs = new ArrayList<>();
         for (Task task : allTasks) {
             allOutputDTOs.add(TaskMapper.toOutputDto(task));
@@ -136,8 +134,11 @@ public class TaskService {
      * @param projectId the project to get all incomplete tasks from
      * @return a list of all incomplete tasks in a project, converted to outputDTOs
      */
-    public List<TaskOutputDTO> getIncompleteTasksInProject(Long projectId) {
-        List<Task> allTasks = taskRepository.findByProject_ProjectId(projectId);
+    public List<TaskOutputDTO> getIncompleteTasksInProject(Long projectId, String userId) {
+        projectRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Project with id: " + projectId + " not found!"));
+
+        List<Task> allTasks = taskRepository.findByProject_ProjectIdAndProject_UserId(projectId, userId);
         List<TaskOutputDTO> incompleteTasks = new ArrayList<>();
 
         for (Task task : allTasks) {
@@ -156,18 +157,13 @@ public class TaskService {
      * @param dto an inputDTO object of all fields to replace
      * @return an outputDTO of the updated and saved task
      */
-    public ProjectOutputDTO updateTask(Long projectId, Long taskId, TaskInputDTO dto) {
-        Task existingTask = taskRepository.findById(taskId)
+    public ProjectOutputDTO updateTask(Long projectId, Long taskId, TaskInputDTO dto, String userId) {
+        Task existingTask = taskRepository
+                .findByTaskIdAndProject_ProjectIdAndProject_UserId(taskId, projectId, userId)
                 .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not " +
                         "found"));
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Project with id " + projectId + " not " +
-                        "found!"));
-
-        if (!existingTask.getProject().getProjectId().equals(projectId)) {
-            throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
-        }
+        Project project = existingTask.getProject();
 
         validateDueDateForUpdate(existingTask, dto.getDueDate());
 
@@ -239,14 +235,11 @@ public class TaskService {
      * @param newStatus the new status to change to
      * @return an outputDTO of the updated and saved task
      */
-    public ProjectOutputDTO updateTaskStatus(Long projectId, Long taskId, String newStatus) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not found!"));
+    public ProjectOutputDTO updateTaskStatus(Long projectId, Long taskId, String newStatus, String userId) {
+        Task task = taskRepository
+            .findByTaskIdAndProject_ProjectIdAndProject_UserId(taskId, projectId, userId)
+            .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not found!"));
 
-        if (!task.getProject().getProjectId().equals(projectId)) {
-            throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
-        }
-        
         task.setStatus(Status.valueOf(newStatus.toUpperCase()));
         taskRepository.saveAndFlush(task);
 
@@ -262,17 +255,12 @@ public class TaskService {
      * @param projectId the id of the associated project
      * @param taskId the id of the task to delete
      */
-    public ProjectOutputDTO deleteTask(Long projectId, Long taskId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Project with id " + projectId + " not " +
-                        "found!"));
+    public ProjectOutputDTO deleteTask(Long projectId, Long taskId, String userId) {
+        Task task = taskRepository
+            .findByTaskIdAndProject_ProjectIdAndProject_UserId(taskId, projectId, userId)
+            .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not found!"));
 
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new NoSuchElementException("Task with id " + taskId + " not found!"));
-
-        if (!task.getProject().getProjectId().equals(projectId)) {
-            throw new IllegalArgumentException("Task does not belong to project with id " + projectId);
-        }
+        Project project = task.getProject();
 
         // Orphan removal handles the deletion of the task when removed from the project
         project.removeTask(task);

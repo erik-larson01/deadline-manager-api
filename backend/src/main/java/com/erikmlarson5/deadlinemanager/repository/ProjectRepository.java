@@ -7,19 +7,24 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A JPA repository for all project related functions, connecting to PostgresSQL
  */
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    List<Project> findByStatus(Status status);
+  Optional<Project> findByProjectIdAndUserId(Long projectId, String userId);
 
-    List<Project> findAllByOrderByPriorityDesc();
+    List<Project> findByUserId(String userId);
 
-    boolean existsByTitle(String title);
+    List<Project> findByCategoryIgnoreCaseAndUserId(String category, String userId);
 
-    List<Project> findByCategoryIgnoreCase(String category);
+    List<Project> findByStatusAndUserId(Status status, String userId);
 
-    List<Project> findByDueDateBetween(LocalDate start, LocalDate end);
+    List<Project> findByDueDateBetweenAndUserId(LocalDate start, LocalDate end, String userId);
+
+    List<Project> findAllByUserIdOrderByPriorityDesc(String userId);
+
+    boolean existsByTitleAndUserId(String title, String userId);
 }

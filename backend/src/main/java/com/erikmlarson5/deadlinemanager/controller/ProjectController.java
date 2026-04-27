@@ -11,9 +11,10 @@ import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 
 /**
@@ -40,8 +41,9 @@ public class ProjectController {
      * @return a response entity containing the created project
      */
     @PostMapping
-    public ResponseEntity<ProjectOutputDTO> createProject(@RequestBody @Valid ProjectInputDTO dto) {
-        ProjectOutputDTO createdProject = projectService.createProject(dto);
+    public ResponseEntity<ProjectOutputDTO> createProject(@RequestBody @Valid ProjectInputDTO dto, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO createdProject = projectService.createProject(dto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
     }
 
@@ -51,8 +53,9 @@ public class ProjectController {
      * @return a response entity containing the found project
      */
     @GetMapping(path = "/{id}")
-    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable @Positive Long id) {
-        ProjectOutputDTO project = projectService.getProjectById(id);
+    public ResponseEntity<ProjectOutputDTO> getProjectById(@PathVariable @Positive Long id, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO project = projectService.getProjectById(id, userId);
         return ResponseEntity.ok(project);
     }
 
@@ -61,8 +64,9 @@ public class ProjectController {
      * @return a response entity containing all projects
      */
     @GetMapping
-    public ResponseEntity<List<ProjectOutputDTO>> getAllProjects() {
-        List<ProjectOutputDTO> allProjects = projectService.getAllProjects();
+    public ResponseEntity<List<ProjectOutputDTO>> getAllProjects(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> allProjects = projectService.getAllProjects(userId);
         return ResponseEntity.ok(allProjects);
     }
 
@@ -72,8 +76,9 @@ public class ProjectController {
      * @return a response entity containing the found projects
      */
     @GetMapping(path = "/category/{category}")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByCategory(@PathVariable String category) {
-        List<ProjectOutputDTO> categoryProjects = projectService.getProjectsInCategory(category);
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByCategory(@PathVariable String category, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> categoryProjects = projectService.getProjectsInCategory(category, userId);
         return ResponseEntity.ok(categoryProjects);
     }
 
@@ -83,8 +88,9 @@ public class ProjectController {
      * @return a response entity containing the found projects
      */
     @GetMapping(path = "/status")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByStatus(@RequestParam @Valid Status status) {
-        List<ProjectOutputDTO> projectsByStatus = projectService.getProjectsByStatus(status);
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsByStatus(@RequestParam @Valid Status status, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> projectsByStatus = projectService.getProjectsByStatus(status, userId);
         return ResponseEntity.ok(projectsByStatus);
     }
 
@@ -94,8 +100,9 @@ public class ProjectController {
      * @return a response entity containing the found projects
      */
     @GetMapping(path = "/due-in")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam @PositiveOrZero int days) {
-        List<ProjectOutputDTO> projectsDueIn = projectService.getProjectsDueInDays(days);
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsDueInDays(@RequestParam @PositiveOrZero int days, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> projectsDueIn = projectService.getProjectsDueInDays(days, userId);
         return ResponseEntity.ok(projectsDueIn);
     }
 
@@ -104,8 +111,9 @@ public class ProjectController {
      * @return a response entity containing the found projects
      */
     @GetMapping(path = "/completed")
-    public ResponseEntity<List<ProjectOutputDTO>> getCompletedProjects() {
-        List<ProjectOutputDTO> completedProjects = projectService.getCompletedProjects();
+    public ResponseEntity<List<ProjectOutputDTO>> getCompletedProjects(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> completedProjects = projectService.getCompletedProjects(userId);
         return ResponseEntity.ok(completedProjects);
     }
 
@@ -114,8 +122,9 @@ public class ProjectController {
      * @return a response entity containing the found projects, sorted by priority descending
      */
     @GetMapping(path = "/priority")
-    public ResponseEntity<List<ProjectOutputDTO>> getProjectsSortedByPriority() {
-        List<ProjectOutputDTO> sortedProjects = projectService.getProjectsSortedByPriority();
+    public ResponseEntity<List<ProjectOutputDTO>> getProjectsSortedByPriority(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<ProjectOutputDTO> sortedProjects = projectService.getProjectsSortedByPriority(userId);
         return ResponseEntity.ok(sortedProjects);
     }
 
@@ -127,8 +136,10 @@ public class ProjectController {
      */
     @PutMapping(path = "/{id}")
     public ResponseEntity<ProjectOutputDTO> updateProject(@PathVariable @Positive Long id,
-                                                          @RequestBody @Valid ProjectInputDTO dto) {
-        ProjectOutputDTO updatedProject = projectService.updateProject(id, dto);
+                                                          @RequestBody @Valid ProjectInputDTO dto,
+                                                          @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = projectService.updateProject(id, dto, userId);
         return ResponseEntity.ok(updatedProject);
     }
 
@@ -138,13 +149,15 @@ public class ProjectController {
      * @param newStatus the new enum status to be saved
      * @return a response entity of the updated project
      */
-    @PatchMapping(path = "/{id}/status")
-    public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable @Positive Long id,
-                                                                @RequestParam
-                                                                @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
-                                                                        message = "newStatus must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
-                                                                String newStatus) {
-        ProjectOutputDTO updatedProject = projectService.updateProjectStatus(id, newStatus);
+        @PatchMapping(path = "/{id}/status")
+        public ResponseEntity<ProjectOutputDTO> updateProjectStatus(@PathVariable @Positive Long id,
+                                    @RequestParam
+                                    @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
+                                        message = "newStatus must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
+                                    String newStatus,
+                                    @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = projectService.updateProjectStatus(id, newStatus, userId);
         return ResponseEntity.ok(updatedProject);
     }
 
@@ -153,8 +166,9 @@ public class ProjectController {
      * @return a response entity that displays the successful update
      */
     @PatchMapping(path = "/update-priorities")
-    public ResponseEntity<Void> updateAllProjectPriorities() {
-        projectService.updateAllProjectPriorities();
+    public ResponseEntity<Void> updateAllProjectPriorities(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        projectService.updateAllProjectPriorities(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -164,8 +178,9 @@ public class ProjectController {
      * @return a response entity that displays the successful deletion
      */
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable @Positive Long id) {
-        projectService.deleteProject(id);
+    public ResponseEntity<Void> deleteProject(@PathVariable @Positive Long id, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        projectService.deleteProject(id, userId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -5,14 +5,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A JPA repository for all task related functions, connecting to PostgresSQL
  */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
-    List<Task> findByStatus(Status status);
+    List<Task> findByProject_UserId(String userId);
 
-    List<Task> findByProject_ProjectId(Long projectId);
+    List<Task> findByProject_ProjectIdAndProject_UserId(Long projectId, String userId);
+
+    Optional<Task> findByTaskIdAndProject_UserId(Long taskId, String userId);
+
+    // Strongly-typed user-scoped lookup enforcing task->project->user ownership in a single query
+    Optional<Task> findByTaskIdAndProject_ProjectIdAndProject_UserId(Long taskId, Long projectId, String userId);
+
+    // Push status + user filter down to the database
+    List<Task> findByStatusAndProject_UserId(Status status, String userId);
 
 }

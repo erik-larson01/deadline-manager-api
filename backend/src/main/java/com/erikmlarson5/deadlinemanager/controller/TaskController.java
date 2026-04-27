@@ -8,6 +8,8 @@ import com.erikmlarson5.deadlinemanager.utils.Status;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +44,10 @@ public class TaskController {
      */
     @PostMapping(path = "projects/{projectId}/tasks")
     public ResponseEntity<ProjectOutputDTO> createTask(@PathVariable @Positive Long projectId,
-                                                       @RequestBody @Valid TaskInputDTO dto) {
-        ProjectOutputDTO updatedProject = taskService.createTask(projectId, dto);
+                                                       @RequestBody @Valid TaskInputDTO dto,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = taskService.createTask(projectId, dto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedProject);
     }
 
@@ -55,8 +59,10 @@ public class TaskController {
      */
     @GetMapping(path = "projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<TaskOutputDTO> getTaskById(@PathVariable @Positive Long projectId,
-                                                     @PathVariable @Positive Long taskId) {
-        TaskOutputDTO task = taskService.getTaskById(projectId, taskId);
+                                                     @PathVariable @Positive Long taskId,
+                                                     @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        TaskOutputDTO task = taskService.getTaskById(projectId, taskId, userId);
         return ResponseEntity.ok(task);
     }
 
@@ -65,8 +71,9 @@ public class TaskController {
      * @return a response entity containing all tasks
      */
     @GetMapping(path = "/tasks")
-    public ResponseEntity<List<TaskOutputDTO>> getAllTasks() {
-        List<TaskOutputDTO> allTasks = taskService.getAllTasks();
+    public ResponseEntity<List<TaskOutputDTO>> getAllTasks(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<TaskOutputDTO> allTasks = taskService.getAllTasks(userId);
         return ResponseEntity.ok(allTasks);
     }
 
@@ -76,8 +83,9 @@ public class TaskController {
      * @return a response entity containing the found tasks
      */
     @GetMapping(path = "/projects/{projectId}/tasks")
-    public ResponseEntity<List<TaskOutputDTO>> getTasksInProject(@PathVariable @Positive Long projectId) {
-        List<TaskOutputDTO> allTasksInProject = taskService.getTasksInProject(projectId);
+    public ResponseEntity<List<TaskOutputDTO>> getTasksInProject(@PathVariable @Positive Long projectId, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<TaskOutputDTO> allTasksInProject = taskService.getTasksInProject(projectId, userId);
         return ResponseEntity.ok(allTasksInProject);
     }
 
@@ -87,8 +95,9 @@ public class TaskController {
      * @return a response entity containing the found tasks
      */
     @GetMapping(path = "/tasks/status")
-    public ResponseEntity<List<TaskOutputDTO>> getAllTasksByStatus(@RequestParam @Valid Status status) {
-        List<TaskOutputDTO> tasksByStatus = taskService.getAllTasksByStatus(status);
+    public ResponseEntity<List<TaskOutputDTO>> getAllTasksByStatus(@RequestParam @Valid Status status, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<TaskOutputDTO> tasksByStatus = taskService.getAllTasksByStatus(status, userId);
         return ResponseEntity.ok(tasksByStatus);
     }
 
@@ -98,8 +107,9 @@ public class TaskController {
      * @return a response entity containing the found tasks
      */
     @GetMapping(path = "/projects/{projectId}/tasks/incomplete")
-    public ResponseEntity<List<TaskOutputDTO>> getIncompleteTasksInProject(@PathVariable @Positive Long projectId) {
-        List<TaskOutputDTO> incompleteTasks = taskService.getIncompleteTasksInProject(projectId);
+    public ResponseEntity<List<TaskOutputDTO>> getIncompleteTasksInProject(@PathVariable @Positive Long projectId, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<TaskOutputDTO> incompleteTasks = taskService.getIncompleteTasksInProject(projectId, userId);
         return ResponseEntity.ok(incompleteTasks);
     }
 
@@ -113,8 +123,10 @@ public class TaskController {
     @PutMapping(path = "/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<ProjectOutputDTO> updateTask(@PathVariable @Positive Long projectId,
                                                        @PathVariable @Positive Long taskId,
-                                                       @RequestBody @Valid TaskInputDTO dto) {
-        ProjectOutputDTO updatedProject = taskService.updateTask(projectId, taskId, dto);
+                                                       @RequestBody @Valid TaskInputDTO dto,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = taskService.updateTask(projectId, taskId, dto, userId);
         return ResponseEntity.ok(updatedProject);
     }
 
@@ -126,13 +138,15 @@ public class TaskController {
      * @return a response entity of the updated task
      */
     @PatchMapping(path = "/projects/{projectId}/tasks/{taskId}/status")
-    public ResponseEntity<ProjectOutputDTO> updateTaskStatus(@PathVariable @Positive Long projectId,
-                                                             @PathVariable @Positive Long taskId,
-                                                             @RequestParam
-                                                             @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
-                                                                     message = "newStatus must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
-                                                             String newStatus) {
-        ProjectOutputDTO updatedProject = taskService.updateTaskStatus(projectId, taskId, newStatus);
+        public ResponseEntity<ProjectOutputDTO> updateTaskStatus(@PathVariable @Positive Long projectId,
+                                     @PathVariable @Positive Long taskId,
+                                     @RequestParam
+                                     @Pattern(regexp = "(?i)^(NOT_STARTED|IN_PROGRESS|COMPLETED)$",
+                                         message = "newStatus must be one of: NOT_STARTED, IN_PROGRESS, COMPLETED")
+                                     String newStatus,
+                                     @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = taskService.updateTaskStatus(projectId, taskId, newStatus, userId);
         return ResponseEntity.ok(updatedProject);
     }
 
@@ -144,8 +158,10 @@ public class TaskController {
      */
     @DeleteMapping("/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<ProjectOutputDTO> deleteTask(@PathVariable @Positive Long projectId,
-                                                       @PathVariable @Positive Long taskId) {
-        ProjectOutputDTO updatedProject = taskService.deleteTask(projectId, taskId);
+                                                       @PathVariable @Positive Long taskId,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        ProjectOutputDTO updatedProject = taskService.deleteTask(projectId, taskId, userId);
         return ResponseEntity.ok(updatedProject);
     }
 }
