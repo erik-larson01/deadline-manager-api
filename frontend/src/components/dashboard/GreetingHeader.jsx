@@ -1,4 +1,7 @@
+import { useAuth0 } from "@auth0/auth0-react"
 function GreetingHeader() {
+  const { user } = useAuth0()
+
   // Make greeting based on current time of day
 	const hour = new Date().getHours()
 	let greeting = 'Good evening'
@@ -16,7 +19,7 @@ function GreetingHeader() {
 
 	return (
 		<header className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
-			<h1 className="text-xl font-semibold text-gray-900">{greeting}, User</h1>
+			<h1 className="text-xl font-semibold text-gray-900">{greeting}, {user.name}</h1>
 			<p className="text-sm font-medium text-gray-500">{todayLabel}</p>
 		</header>
 	)
