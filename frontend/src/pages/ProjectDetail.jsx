@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Pencil, SearchX, Trash2 } from 'lucide-react'
 import ProjectModal from '../components/projects/ProjectModal'
 import DeleteProjectModal from '../components/projects/DeleteProjectModal'
 import ProjectsContext from '../contexts/ProjectsContext'
@@ -22,7 +22,10 @@ function ProjectDetail() {
 
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // State to track errors and error types for more specific error messaging and handling
   const [error, setError] = useState(null)
+  const [errorType, setErrorType] = useState(null)
 
   // States to track modal open/close
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -52,6 +55,7 @@ function ProjectDetail() {
       try {
         setIsLoading(true)
         setError(null)
+        setErrorType(null)
 
         const accessToken = await getAccessTokenSilently()
         
@@ -61,8 +65,17 @@ function ProjectDetail() {
           },
         })
 
+        // Handler to define not found errors for displaying not found UI
         if (!response.ok) {
-          throw new Error('Server Error. Failed to fetch project details')
+          if ([400, 401, 403, 404].includes(response.status)) {
+            const projectNotFoundError = new Error(
+              "This project doesn't exist or you don't have access to it."
+            )
+            projectNotFoundError.code = 'PROJECT_NOT_FOUND'
+            throw projectNotFoundError
+          }
+
+          throw new Error('Server error. Failed to fetch project details.')
         }
 
         const data = await response.json()
@@ -70,6 +83,7 @@ function ProjectDetail() {
         setStatusValue(data.status)
       } catch (fetchError) {
         setError(fetchError.message)
+        setErrorType(fetchError.code === 'PROJECT_NOT_FOUND' ? 'not-found' : 'generic')
         setProject(null)
       } finally {
         setIsLoading(false)
@@ -77,7 +91,7 @@ function ProjectDetail() {
     }
 
     fetchProjectById()
-  }, [id])
+  }, [id, getAccessTokenSilently])
 
   // Formats the API dueDate string to readable text
   const formatDueDateLabel = (dateString) => {
@@ -460,8 +474,38 @@ function ProjectDetail() {
     )
   }
 
-  // Render a red error message if there was a loading issue
+
   if (error) {
+    // Display message if a project is not found or a user does not have access
+    if (errorType === 'not-found') {
+      return (
+        <section className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <SearchX size={14} />
+            Not Found
+          </div>
+          <h1 className="mt-4 text-xl font-semibold text-gray-900">Project not found</h1>
+          <p className="mt-2 max-w-xl text-sm text-gray-600">{error}</p>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link
+              to="/projects"
+              className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700"
+            >
+              <ArrowLeft size={16} />
+              Back to Projects
+            </Link>
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50"
+            >
+              Go to Dashboard
+            </Link>
+          </div>
+        </section>
+      )
+    }
+
     return (
       <section className="w-full rounded-xl border border-rose-200 bg-rose-50 p-5 text-rose-800 shadow-sm sm:p-6">
         <h1 className="text-lg font-semibold">Unable to load project</h1>
