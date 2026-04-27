@@ -10,19 +10,14 @@ function LandingPage({ error }) {
         {/* Header section with title and sign in */}
         <header className="animate-fade-in-slow flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-9 w-9">
-              <rect width="32" height="32" rx="6" fill="#4f46e5" />
-              <polyline
-                points="6,24 13,16 19,20 26,8"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-10 h-10">
+              <rect width="48" height="48" rx="10" fill="#4f46e5"/>
+              <rect x="7" y="11" width="34" height="8" rx="4" fill="white"/>
+              <rect x="7" y="21" width="25" height="8" rx="4" fill="white" opacity="0.6"/>
+              <rect x="7" y="31" width="16" height="8" rx="4" fill="white" opacity="0.35"/>
             </svg>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-700">Momentum</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.05em] text-indigo-700">Tempo</p>
               <p className="text-sm text-gray-600">A workload ranking system for students</p>
             </div>
           </div>
@@ -48,7 +43,7 @@ function LandingPage({ error }) {
                 Your projects, ranked by what actually needs attention right now.
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg">
-                Momentum organizes your classes, projects, and tasks into a single ranked system so you always know what deserves attention next.
+                Tempo organizes your classes, projects, and tasks into a single ranked system so you always know what deserves attention next.
               </p>
             </div>
 
