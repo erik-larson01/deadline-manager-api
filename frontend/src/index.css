@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(18px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+.animate-fade-up {
+	animation: fade-up 700ms ease-out both;
+}
+
+.animate-fade-up-delay {
+	animation: fade-up 800ms ease-out both;
+	animation-delay: 150ms;
+}
+
+.animate-fade-in-slow {
+	animation: fade-in 1400ms ease-out both;
+}

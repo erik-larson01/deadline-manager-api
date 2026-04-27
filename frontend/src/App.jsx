@@ -6,22 +6,28 @@ import ProjectsOverview from './pages/ProjectsOverview'
 import ProjectDetail from './pages/ProjectDetail'
 import NotFound from './pages/NotFound'
 import { useAuth0 } from '@auth0/auth0-react'
+import LandingPage from './pages/LandingPage'
+import LoadingScreen from './components/common/LoadingScreen'
+
 function App() {
-  const { isLoading, isAuthenticated, loginWithRedirect, error } = useAuth0()
+  const { isLoading, isAuthenticated, error } = useAuth0()
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <LoadingScreen />
+  }
+
+  if (error) {
+    return <LandingPage error={error.message} />
   }
 
   if (!isAuthenticated) {
     return (
-      <div>
-        {error && <p>Error: {error.message}</p>}
-        <button onClick={() => loginWithRedirect()}>Log In</button>
-      </div>
+      <Routes>
+        <Route path="*" element={<LandingPage />} />
+      </Routes>
     )
   }
-  
+
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -34,4 +40,5 @@ function App() {
     </Routes>
   )
 }
+
 export default App

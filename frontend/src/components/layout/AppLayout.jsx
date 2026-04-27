@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { LoaderCircle } from 'lucide-react'
 import ProjectsContext from '../../contexts/ProjectsContext'
 import { useAuth0 } from '@auth0/auth0-react'
+
 function AppLayout() {
-  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0()
+  const { getAccessTokenSilently } = useAuth0()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,9 +19,7 @@ function AppLayout() {
         setIsLoading(true)
         setError(null)
         const accessToken = await getAccessTokenSilently()
-        console.log("Fetching projects for user:", user.sub)
-        console.log("Using access token:", accessToken)
-        console.log("Is authenticated:", isAuthenticated)
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/projects`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
