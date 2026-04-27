@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
-import { LogOut, UserCircle2 } from 'lucide-react'
+import { LogOut, UserCircle2, Menu } from 'lucide-react'
 
-function TopBar() {
+function TopBar({ onMenuClick }) {
   const { user, logout } = useAuth0()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
@@ -21,7 +21,16 @@ function TopBar() {
   }, [])
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-6">
+    <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+
+      {/* Sidebar toggle only on mobile */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors"
+      >
+        <Menu size={20} />
+      </button>
+
       <NavLink to="/dashboard" className="flex items-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +47,7 @@ function TopBar() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className="text-xl font-semibold text-gray-900">Momentum</span>
+        <span className="hidden sm:block text-xl font-semibold text-gray-900">Momentum</span>
       </NavLink>
 
       {/** User profile section */}

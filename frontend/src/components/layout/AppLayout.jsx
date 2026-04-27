@@ -10,9 +10,10 @@ function AppLayout() {
   const { getAccessTokenSilently } = useAuth0()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [error, setError] = useState(null)
 
-  // Fetch all current DB projects on mount and load into context
+  // Fetch all current DB projects by user on mount and load into context
   useEffect(() => {
     async function fetchProjects() {
       try {
@@ -45,9 +46,9 @@ function AppLayout() {
   return (
     <ProjectsContext.Provider value={{ projects, setProjects, isLoading, error }}>
       <div className='flex flex-col h-screen'>
-        <TopBar />
+        <TopBar onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
         <div className='flex flex-1 overflow-hidden'>
-          <Sidebar />
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
           <main className='flex-1 overflow-y-auto p-6'>
             {/** Return Outlet only if page is not loading and there is no error, otherwise render a loading or error message */}
             {isLoading ? (
