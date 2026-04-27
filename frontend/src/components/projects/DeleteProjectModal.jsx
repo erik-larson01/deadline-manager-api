@@ -1,7 +1,9 @@
 import { X, LoaderCircle } from "lucide-react"
 import { useState } from "react"
+import { useAuth0 } from '@auth0/auth0-react'
 
 function DeleteProjectModal({ onClose, onProjectDeleted, project }) {
+  const { getAccessTokenSilently } = useAuth0()
 	const [isLoading, setIsLoading] = useState(false)
 	const [submitError, setSubmitError] = useState(null)
 
@@ -11,10 +13,15 @@ function DeleteProjectModal({ onClose, onProjectDeleted, project }) {
 	async function handleDeleteProject() {
 		setSubmitError(null)
 		setIsLoading(true)
-
+    
 		try {
+			const accessToken = await getAccessTokenSilently()
+      
 			const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${project.projectId}`, {
 				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
 			})
 
       // On error, retrieve the error message to display to the user

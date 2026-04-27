@@ -1,5 +1,6 @@
 import { X, LoaderCircle } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useAuth0 } from '@auth0/auth0-react'
 
 // Default form values for both create and edit modes
 const getDefaultForm = () => ({
@@ -32,6 +33,7 @@ const getFormFromTask = (task) => ({
 })
 
 function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
+  const { getAccessTokenSilently } = useAuth0()
 	const [isLoading, setIsLoading] = useState(false)
 	const [submitError, setSubmitError] = useState(null)
 
@@ -87,6 +89,8 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 
 		// Fetch request creates or updates task, then updates parent component state and closes modal
 		try {
+			const accessToken = await getAccessTokenSilently()
+
 			// Send update request if in edit mode, or create request if in create mode
 			const url = isEditMode
 				? `${import.meta.env.VITE_API_URL}/projects/${projectId}/tasks/${task.taskId}`
@@ -94,7 +98,10 @@ function TaskModal({mode, onClose, onTaskSaved, projectId,task = null}) {
 
 			const response = await fetch(url, {
 				method: isEditMode ? "PUT" : "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${accessToken}`,
+				},
 				body: JSON.stringify({
 					title: form.title,
 					dueDate: form.dueDate || null,

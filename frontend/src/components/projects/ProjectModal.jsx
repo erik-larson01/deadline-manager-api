@@ -1,5 +1,6 @@
 import { X, LoaderCircle } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useAuth0 } from '@auth0/auth0-react'
 
 // Default form values for both create and edit modes
 const getDefaultForm = () => ({
@@ -34,6 +35,7 @@ const getFormFromProject = (project) => ({
 })
 
 function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
+  const { getAccessTokenSilently } = useAuth0()
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState(null)
 
@@ -89,6 +91,8 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
 
     // Fetch request creates or updates project, then updates parent component state and closes modal
     try {
+      const accessToken = await getAccessTokenSilently()
+
       // Send update request if in edit mode, or create request if in create mode
       const url = isEditMode
         ? `${import.meta.env.VITE_API_URL}/projects/${project.projectId}`
@@ -96,7 +100,10 @@ function ProjectModal({ mode, onClose, onProjectSaved, project = null }) {
 
       const response = await fetch(url, {
         method: isEditMode ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           title: form.title,
           dueDate: form.dueDate,

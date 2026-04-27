@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import ProjectModal from '../components/projects/ProjectModal'
@@ -9,6 +10,8 @@ import TaskList from '../components/tasks/TaskList'
 import DeleteTaskModal from '../components/tasks/DeleteTaskModal'
 
 function ProjectDetail() {
+  const { getAccessTokenSilently } = useAuth0()
+
   // Fixed preview length for description truncation
   const DESCRIPTION_PREVIEW_LENGTH = 180
 
@@ -50,7 +53,13 @@ function ProjectDetail() {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${id}`)
+        const accessToken = await getAccessTokenSilently()
+        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
 
         if (!response.ok) {
           throw new Error('Server Error. Failed to fetch project details')
@@ -253,8 +262,13 @@ function ProjectDetail() {
 
     try {
       // Make a PATCH request to the API to update the project's status
+      const accessToken = await getAccessTokenSilently()
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/${project.projectId}/status?newStatus=${nextStatus}`, {
-        method: 'PATCH' 
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       })
 
       if (!response.ok) {
@@ -361,10 +375,15 @@ function ProjectDetail() {
     setTaskStatusUpdatingIds((prevIds) => [...prevIds, task.taskId])
 
     try {
+      const accessToken = await getAccessTokenSilently()
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/projects/${project.projectId}/tasks/${task.taskId}/status?newStatus=${nextStatus}`,
         {
           method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       )
 
